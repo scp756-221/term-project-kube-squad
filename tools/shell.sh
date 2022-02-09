@@ -16,6 +16,7 @@ INAME=${INAME:-c756-tool}
 TZ=${TZ:-Canada/Pacific}
 docker container run -it --rm \
   -v ${HOME}/.aws:/root/.aws \
+  -v ${HOME}/.azure:/root/.azure \
   -v ${HOME}/.minikube:/root/.minikube \
   -v ${HOME}/.ssh:/root/.ssh \
   -v ${HOME}/.kube:/root/.kube \
