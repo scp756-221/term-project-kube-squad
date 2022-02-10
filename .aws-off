@@ -1,0 +1,25 @@
+
+# Remove the aliases from .aws-a
+
+unalias awho
+
+unset -f eps
+
+unset -f ekill
+
+unset -f epurge
+
+unalias s3ls
+unalias s3lsr
+unalias s3cp
+unalias s3rm
+unalias s3mv
+
+
+
+unalias erun
+unalias essh
+
+unalias earm
+unalias essh2
+

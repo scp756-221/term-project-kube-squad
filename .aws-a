@@ -1,0 +1,157 @@
+
+# Convenient aliases for the aws cli
+# NB: These aliases use jq (https://stedolan.github.io/jq/) judiciously!
+
+# The next two statements will be automatically selected by
+# the xfer.sh script---do not modify them
+# Use this definition when running in Host OS
+PROFILE=.ec2.mak
+# Use this definition when running in Guest OS via the tools container
+#PROFILE=profiles/ec2.mak
+
+alias awho='aws sts get-caller-identity'
+
+# usage: esn <instance-name> <userid>
+# Add the instance name to the bash prompt definition in ~/.bashrc
+esn ()
+{
+    if [[ $# -ne 2 ]]; then
+      echo "Usage: esn <instance-name> <userid>"
+    else
+      KEYFILE=$(make -f ${PROFILE} keyfile)
+      ssh -i ${KEYFILE} ${2}@`enamedns ${1}` 'echo PS1="\"[\u@'${1}'/ec2 \W]$ \"" >> ~/.bashrc'
+    fi
+}
+
+# usage: eps [--region REGION]
+# Return a short description of all EC2 instances
+# Optional region parameter ("--region" required)
+# There are 2 sets of instances: the normal ones and the mnemonic-named ones (created by this set of macro)
+eps() {
+    epsg "$@"
+    epsl "$@"
+}
+
+# usage: epsl [--region REGION]
+# Return a short description of all mnemonic-named EC2 instances (l = labelled)
+# Optional region parameter ("--region" required)
+# This returns instances *with* a mnemonic-name tag
+epsl() {
+    aws "$@" --output json ec2 describe-instances --filters Name=tag-key,Values="mnemonic-name" | \
+        jq -r '.Reservations[].Instances[]| .InstanceId + " " + (.Tags[] | select(.Key=="mnemonic-name").Value) + " " + .InstanceType + "\/" + .Architecture + " " + (.Tags[] | select(.Key=="ssh-user").Value) + "@" + .PublicIpAddress + " " + .ImageId + " " + .State.Name'
+}
+
+# usage: epsg [--region REGION]
+# Return a description of all untagged EC2 instances (g = global)
+# Optional region parameter ("--region" required)
+# This returns instances *without* a mnemonic-name tag which 
+#  is all instances created by any other means other than this
+#  set of macro.
+epsg() {
+    aws "$@" --output json ec2 describe-instances --query 'Reservations[].Instances[?!not_null(Tags[?Key == `mnemonic-name`].Value)] | []'| \
+        jq -r '.[]| .InstanceId + " " + .InstanceType + "\/" + .Architecture + " " + .ImageId + " " + .LaunchTime + " " + .State.Name + " " + .Placement.AvailabilityZone'
+}
+
+# usage: enameid <instance-name>
+# Return the ID of a named instance
+enameid () {
+    aws --output json ec2 describe-instances --filters Name=tag:mnemonic-name,Values="${1}" \
+        | jq -r '.Reservations[].Instances[0] | .InstanceId'
+}
+
+# usage: enamesshu <instance-name>
+# Return the ssh-user (tagged) of a named instance
+enamesshu () {
+    aws --output json ec2 describe-instances --filters Name=tag:mnemonic-name,Values="${1}" \
+        | jq -r '.Reservations[].Instances[].Tags[] | select(.Key=="ssh-user").Value'
+}
+
+# usage: enamddns <instance-name>
+# Return the DNS name of a named instance
+enamedns () {
+    aws --output json ec2 describe-instances --filters Name=tag:mnemonic-name,Values="${1}" \
+        | jq -r '.Reservations[].Instances[0] | .PublicDnsName'
+}
+
+# usage: ekillid <instance-id>
+# Kill an EC2 instance given its instance-id
+ekillid() {
+    aws  --output json ec2 terminate-instances --instance-id "$@"
+}
+
+# usage: epurge
+# terminate all running instances
+epurge() {
+    ekillid `epsl | grep running | awk '{print $1}'`
+}
+
+# usage: ekn <instance-name>
+# Terminate an instance by name
+ekn() {
+    ekillid $(enameid ${1})
+}
+
+# usage: esshn <instance-name> <userid>
+# SSH in to a named instance
+esshn() {
+    if [[ $# -ne 2 ]]; then
+      echo "Usage: esshn <instance-name> <userid>"
+    else
+      make -f ${PROFILE} EC2_DNS=`enamedns ${1}` SSH_USER=${2} sshdns
+    fi
+}
+
+# usage: essh1 <instance-name>
+# SSH in to a named instance
+essh1() {
+    if [[ $# -ne 1 ]]; then
+      echo "Usage: essh1 <instance-name>"
+    else
+      make -f ${PROFILE} EC2_DNS=`enamedns ${1}` SSH_USER=`enamesshu ${1}` sshdns
+    fi
+}
+
+# usage: epkg <pgkname>
+# Run an x86 instance defined by <pkgname>
+epkg() {
+    if [[ $# -ne 1 ]]; then
+      echo "Usage: epkg <pkgname>"
+    else
+      make -f ${PROFILE} PKG=${1} up
+    fi
+}
+
+# usage: armpkg <pgkname>
+# Run an ARM instance defined by <pkgname>
+armpkg() {
+    if [[ $# -ne 1 ]]; then
+      echo "Usage: armpkg <pkgname>"
+    else
+      make -f ${PROFILE} ARMPKG=${1} up-arm
+    fi
+}
+
+alias s3ls='aws s3 ls '
+alias s3lsr='aws s3 ls --recursive'
+alias s3cp='aws s3 cp '
+alias s3rm='aws s3 rm '
+alias s3mv='aws s3 mv '
+
+# cloudformation
+cfls() {
+    aws cloudformation list-stacks --output json \
+        | jq -r '.StackSummaries[]| .StackName + " " + .CreationTime + " " + .StackStatus + " " + .StackId' \
+        | cut -c -100 \
+        | grep --invert-match DELETE_COMPLETE
+}
+
+# NB: You must fill in the PROFILE with *at least* the security group and key information; review the others.
+
+alias erun='make -f ${PROFILE} up'
+alias essh='make -f ${PROFILE} ssh'
+alias ekill='ekillid $(cat logs/x86-id.log)'
+
+alias armrun='make -f ${PROFILE} up-arm'
+alias armssh='make -f ${PROFILE} ssh-arm'
+alias armkill='ekillid $(cat logs/arm-id.log)'
+

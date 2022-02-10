@@ -43,7 +43,34 @@ fi
 #
 # Step 3: Convert the files
 #
-find . -name '*-tpl.*' -exec ./tools/call-sed.sh '{}'  ${vals} \;
+find . -name 'k8s-tpl.*' -exec ./tools/call-sed.sh '{}'  ${vals} \;
+
+#
+# Step 4: Check that the input file exists
+#
+if [[ ! -f cluster/aws-tpl-vars.txt ]]; then
+  echo "Create and fill in file 'cluster/aws-tpl-vars.txt' before running this command."
+  exit 1
+fi
+#
+# Step 5: Strip comments from file listing variables
+#
+grep -v '^#' ./cluster/aws-tpl-vars.txt > ./cluster/tpl-nocomments.txt
+#
+# Step 6: Check that every field has a value
+#
+vals=$(cut -f 2 -d= ./cluster/tpl-nocomments.txt)
+count_vals () {
+  echo $#
+}
+if [[ `count_vals ${vals}` -ne 3 ]]; then
+  echo "Some fields in 'cluster/tpl-vars.txt' are not filled in."
+  exit 1
+fi
+#
+# Step 7: Convert the files
+#
+find . -name '.ec2-tpl.*' -exec ./tools/call-sed-aws.sh '{}'  ${vals} \;
 #
 # Step 3: Cleanup
 #

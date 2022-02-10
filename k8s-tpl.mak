@@ -53,3 +53,4 @@ ARCH=--platform x86_64
 # (because it creates k8s.mak)
 templates:
 	tools/process-templates.sh
+

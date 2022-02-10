@@ -1,0 +1,13 @@
+# ALL THE VARIABLES IN THIS FILE MUST BE SPECIFIED IN THIS ORDER
+# Security group ID
+SGI_WFH=
+#
+# Specify the name of your key-pair; 
+#  1. https://us-west-2.console.aws.amazon.com/ec2/v2/home?region=us-west-2#KeyPairs:
+#     https://ca-central-1.console.aws.amazon.com/ec2/v2/home?region=ca-central-1#KeyPairs:
+#  2. aws ec2 describe-key-pairs
+#
+# Name of EC2 key
+KEY=
+# Path to file, including filename
+LKEY=
