@@ -1,3 +1,6 @@
 ghcr.io-token.txt
 tpl-vars.txt
 aws-tpl-vars.txt
+s2-dpl-v1-tpl.yaml
+cloudformationdynamodb
+loader.yaml

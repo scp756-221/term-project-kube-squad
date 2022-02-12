@@ -60,4 +60,14 @@ build:
 
 	# Build the loader
 	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756loader:$(LOADER_VER) loader  | tee $(LOG_DIR)/loader.img.log
+deply: appns
+
+
+# Create and configure the application namespace
+appns:
+	# Appended "|| true" so that make continues even when command fails
+	# because namespace already exists
+	$(KC) create ns $(APP_NS) || true
+	$(KC) label namespace $(APP_NS) --overwrite=true istio-injection=enabled
+
 

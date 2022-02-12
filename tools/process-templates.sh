@@ -43,7 +43,8 @@ fi
 #
 # Step 3: Convert the files
 #
-find . -name 'k8s-tpl.*' -exec ./tools/call-sed.sh '{}'  ${vals} \;
+find . -name '*-tpl.*' -exec ./tools/call-sed.sh '{}'  ${vals} \;
+#
 # Step 3: Cleanup
 #
 /bin/rm -f ./cluster/tpl-nocomments.txt
