@@ -66,78 +66,70 @@ templates:
 	tools/process-templates.sh
 
 start: showcontext
-	# Creating cluster
 	$(EKS) create cluster --name $(CLUSTER_NAME) --version $(KVER) --region $(REGION) --nodegroup-name $(NGROUP) --node-type $(NTYPE) --nodes 2 --nodes-min 2 --nodes-max 2 --managed | tee $(LOG_DIR)/eks-start.log
-
-	# Renaming the context
+	# Use back-ticks for subshell because $(...) notation is used by make
 	$(KC) config rename-context `$(KC) config current-context` $(EKS_CTX) | tee -a $(LOG_DIR)/eks-start.log
 
-	# Using the current Context
+config-namespace:
 	$(KC) config use-context aws756
-
-	# Creating a namespace inside this context
 	$(KC) create ns c756ns
-
-	# Setting this context to use this namespace
 	$(KC) config set-context aws756 --namespace=c756ns
-
-stop:
-	$(EKS) delete cluster --name $(CLUSTER_NAME) --region $(REGION) | tee $(LOG_DIR)/eks-stop.log
-	$(KC) config delete-context $(EKS_CTX) | tee -a $(LOG_DIR)/eks-stop.log
 
 istio:
 	$(KC) config use-context aws756
 	$(IC) install -y --set profile=demo --set hub=gcr.io/istio-release
 	$(KC) label namespace c756ns istio-injection=enabled
+
+down:
+	$(EKS) delete nodegroup --cluster=$(CLUSTER_NAME) --region $(REGION) --name=$(NGROUP) | tee $(LOG_DIR)/eks-down.log	
+
+stop:
+	$(EKS) delete cluster --wait --name $(CLUSTER_NAME) --region $(REGION) | tee $(LOG_DIR)/eks-stop.log
+	$(KC) config delete-context $(EKS_CTX) | tee -a $(LOG_DIR)/eks-stop.log
+
+# --- showcontext: Display current context
+showcontext:
+	$(KC) config get-contexts
+
+istio:
+	$(KC) config use-context aws756
+	$(IC) install -y --set profile=demo --set hub=gcr.io/istio-release
+	$(KC) label namespace c756ns istio-injection=enabled
+
 namespaces-all:
 	$(KC) get services --all-namespaces
+
 context-list:
 	$(KC) config get-contexts
+
 context-current:
 	$(KC) config current-context
-build:
-	
+
+# Build the images
+cri: $(LOG_DIR)/s1.repo.log $(LOG_DIR)/s2-$(S2_VER).repo.log $(LOG_DIR)/db.repo.log
+
+# Build the s1 service
 $(LOG_DIR)/s1.repo.log: s1/Dockerfile s1/app.py s1/requirements.txt
+	make -f k8s.mak --no-print-directory registry-login
 	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756s1:$(APP_VER_TAG) s1 | tee $(LOG_DIR)/s1.img.log
 
-	# Build the s2 service
+# Build the s2 service
 $(LOG_DIR)/s2-$(S2_VER).repo.log: s2/$(S2_VER)/Dockerfile s2/$(S2_VER)/app.py s2/$(S2_VER)/requirements.txt
-	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756s2:$(S2_VER) s2 | tee $(LOG_DIR)/s2-$(S2_VER).img.log
+	make -f k8s.mak --no-print-directory registry-login
+	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756s2:$(S2_VER) s2/$(S2_VER) | tee $(LOG_DIR)/s2-$(S2_VER).img.log
 
-	# Build the db service
+# Build the db service
 $(LOG_DIR)/db.repo.log: db/Dockerfile db/app.py db/requirements.txt
+	make -f k8s.mak --no-print-directory registry-login
 	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756db:$(APP_VER_TAG) db | tee $(LOG_DIR)/db.img.log
 
-	# Build the loader
+# Build the loader
 $(LOG_DIR)/loader.repo.log: loader/app.py loader/requirements.txt loader/Dockerfile registry-login
 	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756loader:$(LOADER_VER) loader  | tee $(LOG_DIR)/loader.img.log
-	
-push:
-	# Push the s1 service
-	$(DK) push $(CREG)/$(REGID)/cmpt756s1:$(APP_VER_TAG) | tee $(LOG_DIR)/s1.repo.log
 
-	# Push the s2 service
-	$(DK) push $(CREG)/$(REGID)/cmpt756s2:$(S2_VER) | tee $(LOG_DIR)/s2-$(S2_VER).repo.log
-
-	# Push the db service
-	$(DK) push $(CREG)/$(REGID)/cmpt756db:$(APP_VER_TAG) | tee $(LOG_DIR)/db.repo.log
-
-	# Push the loader
-	$(DK) push $(CREG)/$(REGID)/cmpt756loader:$(LOADER_VER) | tee $(LOG_DIR)/loader.repo.log
-
-deploy: gw db s2
-
+# Update service gateway
 gw: cluster/service-gateway.yaml
 	$(KC) -n $(APP_NS) apply -f $< > $(LOG_DIR)/gw.log
-
-# Update DB and associated monitoring, rebuilding if necessary
-db: 
-	$(LOG_DIR)/db.repo.log cluster/awscred.yaml cluster/dynamodb-service-entry.yaml cluster/db.yaml cluster/db-sm.yaml cluster/db-vs.yaml
-	$(KC) -n $(APP_NS) apply -f cluster/awscred.yaml | tee $(LOG_DIR)/db.log
-	$(KC) -n $(APP_NS) apply -f cluster/dynamodb-service-entry.yaml | tee -a $(LOG_DIR)/db.log
-	$(KC) -n $(APP_NS) apply -f cluster/db.yaml | tee -a $(LOG_DIR)/db.log
-	$(KC) -n $(APP_NS) apply -f cluster/db-sm.yaml | tee -a $(LOG_DIR)/db.log
-	$(KC) -n $(APP_NS) apply -f cluster/db-vs.yaml | tee -a $(LOG_DIR)/db.log
 
 # Update S2 and associated monitoring, rebuilding if necessary
 s2: rollout-s2 cluster/s2-svc.yaml cluster/s2-sm.yaml cluster/s2-vs.yaml
@@ -149,6 +141,18 @@ s2: rollout-s2 cluster/s2-svc.yaml cluster/s2-sm.yaml cluster/s2-vs.yaml
 rollout-s2: $(LOG_DIR)/s2-$(S2_VER).repo.log  cluster/s2-dpl-$(S2_VER).yaml
 	$(KC) -n $(APP_NS) apply -f cluster/s2-dpl-$(S2_VER).yaml | tee $(LOG_DIR)/rollout-s2.log
 	$(KC) rollout -n $(APP_NS) restart deployment/cmpt756s2-$(S2_VER) | tee -a $(LOG_DIR)/rollout-s2.log
+
+# Update DB and associated monitoring, rebuilding if necessary
+db: $(LOG_DIR)/db.repo.log cluster/awscred.yaml cluster/dynamodb-service-entry.yaml cluster/db.yaml cluster/db-sm.yaml cluster/db-vs.yaml
+	$(KC) -n $(APP_NS) apply -f cluster/awscred.yaml | tee $(LOG_DIR)/db.log
+	$(KC) -n $(APP_NS) apply -f cluster/dynamodb-service-entry.yaml | tee -a $(LOG_DIR)/db.log
+	$(KC) -n $(APP_NS) apply -f cluster/db.yaml | tee -a $(LOG_DIR)/db.log
+	$(KC) -n $(APP_NS) apply -f cluster/db-sm.yaml | tee -a $(LOG_DIR)/db.log
+	$(KC) -n $(APP_NS) apply -f cluster/db-vs.yaml | tee -a $(LOG_DIR)/db.log
+
+# registry-login: Login to the container registry
+registry-login:
+	@/bin/sh -c 'cat cluster/${CREG}-token.txt | $(DK) login $(CREG) -u $(REGID) --password-stdin'
 
 # Run the loader, rebuilding if necessary, starting DynamDB if necessary, building ConfigMaps
 loader: dynamodb-init $(LOG_DIR)/loader.repo.log cluster/loader.yaml
@@ -169,20 +173,6 @@ $(LOG_DIR)/dynamodb-init.log: cluster/cloudformationdynamodb.json
 	# Must give DynamoDB time to create the tables before running the loader
 	sleep 20
 
-
-# --- registry-login: Login to the container registry
-#
-registry-login:
-	@/bin/sh -c 'cat cluster/${CREG}-token.txt | $(DK) login $(CREG) -u $(REGID) --password-stdin'
-
-# --- Variables defined for URL targets
-# Utility to get the hostname (AWS) or ip (everyone else) of a load-balanced service
-# Must be followed by a service
-IP_GET_CMD=tools/getip.sh $(KC) $(ISTIO_NS)
-
-# This expression is reused several times
-# Use back-tick for subshell so as not to confuse with make $() variable notation
-INGRESS_IP=`$(IP_GET_CMD) svc/istio-ingressgateway`
 
 
 

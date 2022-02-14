@@ -1,0 +1,3 @@
+1.) In mcli.py, how is the "test" command calling "do_test" (and other commands)
+2.) Current Structure??? Specifically what are the endpoints used in it? I don't see them defined anywhere?
+ALso, it looks like mcli only queries S2?  S1 not queried even though we're deploying it
