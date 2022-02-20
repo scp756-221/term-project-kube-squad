@@ -9,6 +9,8 @@ import re
 
 # Installed packages
 import requests
+import utils
+
 
 # The services check only that we pass an authorization,
 # not whether it's valid
@@ -35,6 +37,9 @@ def parse_args():
 def get_url(name, port):
     return "http://{}:{}/api/v1/music/".format(name, port)
 
+def get_auth_url(name, port):
+    return "http://{}:{}/api/v1/auth/".format(name, port)
+
 
 def parse_quoted_strings(arg):
     """
@@ -60,6 +65,65 @@ Enter 'help' for command list.
 'Tab' character autocompletes commands.
 """
 
+    def do_register(self, arg):
+        """
+        """
+        name = utils.validate_name()
+        email = utils.validate_email()
+        passw, passw2 = utils.validate_pwd_and_c_pwd()
+
+        # For test
+        # print({
+        #     "name": name,
+        #     "email": email,
+        #     "password": passw,
+        # })
+        url = get_auth_url(self.name, self.port)
+        payload = {
+            "name": name,
+            "email": email,
+            "password": passw,
+        }
+        r = requests.post(
+            f"{url}register",
+            json=payload,
+            headers={
+                'Content-Type': 'application/json'
+            }
+        )
+        print(r.json())
+
+    def do_login(self, arg):
+        """
+        """
+        email = utils.validate_email()
+        passw = utils.validate_pwd()
+        # For test
+        print({
+            "email": email,
+            "password": passw,
+        })
+        url = get_auth_url(self.name, self.port)
+        payload = {
+            'email': email,
+            'password': passw,
+        }
+        r = requests.post(
+            f"{url}login",
+            json=payload,
+            headers={
+                'Content-Type': 'application/json'
+            }
+        )
+        res = r.json()
+        if res['status']:
+            f = open("local-storage.txt", 'w+')
+            f.write(r.json()['token'])
+            f.close()
+        print(res)
+
+
+
     def do_read(self, arg):
         """
         Read a single song or list all songs.
@@ -83,6 +147,7 @@ Enter 'help' for command list.
         all songs and will instead return an empty list if
         no parameter is provided.
         """
+        # print(self.name)
         url = get_url(self.name, self.port)
         r = requests.get(
             url+arg.strip(),
