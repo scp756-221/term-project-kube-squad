@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="95b6b567-a7c2-48db-9e57-18a532e24fb7" name="Changes" comment="" />
+    <list default="true" id="f0aeb02e-caf9-415e-a522-97c27e2c8b5e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,7 +15,8 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectId" id="24q2sia6QHB9yRzIbZttRp015el" />
+  <component name="ProjectId" id="25LsASlsd7c7Yqb52gjou67SIm7" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -22,17 +25,25 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../assignment2on-avickars" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/auth" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/auth" />
+    </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="95b6b567-a7c2-48db-9e57-18a532e24fb7" name="Changes" comment="" />
-      <created>1644344005195</created>
+      <changelist id="f0aeb02e-caf9-415e-a522-97c27e2c8b5e" name="Changes" comment="" />
+      <created>1645317559104</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1644344005195</updated>
-      <workItem from="1644344006808" duration="608000" />
+      <updated>1645317559104</updated>
+      <workItem from="1645317562235" duration="109000" />
+      <workItem from="1645317694402" duration="442000" />
+      <workItem from="1645319376417" duration="801000" />
+      <workItem from="1645374473413" duration="569000" />
     </task>
     <servers />
   </component>
@@ -44,19 +55,7 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="branch">
-                    <value>
-                      <list>
-                        <option value="origin/test" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-            </State>
+            <State />
           </value>
         </entry>
       </map>
