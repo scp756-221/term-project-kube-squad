@@ -54,7 +54,9 @@ def addUserToUserTable(name, email, password):
         Item={
             'name': name,
             'email': email,
-            'password': password
+            'password': password,
+            'subscribe': 0,
+            'subscription_type': 0
         }
     )
     return response
