@@ -53,17 +53,13 @@ def parse_quoted_strings(arg):
     return [''.join(a) for a in args]
 
 
-class Mcli(cmd.Cmd):
+class Auth(cmd.Cmd):
     def __init__(self, args):
         self.name = args.name
         self.port = args.port
         cmd.Cmd.__init__(self)
         self.prompt = 'mql: '
-        self.intro = """
-Command-line interface to music service.
-Enter 'help' for command list.
-'Tab' character autocompletes commands.
-"""
+        self.intro = ""
 
     def do_register(self, arg):
         """
@@ -91,6 +87,7 @@ Enter 'help' for command list.
                 'Content-Type': 'application/json'
             }
         )
+        Mcli(args).cmdloop()
         print(r.json())
 
     def do_login(self, arg):
@@ -120,7 +117,24 @@ Enter 'help' for command list.
             f = open("local-storage.txt", 'w+')
             f.write(r.json()['token'])
             f.close()
+
+        Mcli(args).cmdloop()
         print(res)
+
+
+
+class Mcli(cmd.Cmd):
+    def __init__(self, args):
+        self.name = args.name
+        self.port = args.port
+        cmd.Cmd.__init__(self)
+        self.prompt = 'mql: '
+        self.intro = """
+Command-line interface to music service.
+Enter 'help' for command list.
+'Tab' character autocompletes commands.
+"""
+
 
 
 
@@ -253,4 +267,11 @@ Enter 'help' for command list.
 
 if __name__ == '__main__':
     args = parse_args()
-    Mcli(args).cmdloop()
+
+    f = open("local-storage.txt", "r")
+    token = f.read()
+
+    if token != '':
+        Mcli(args).cmdloop()
+    else:
+        Auth(args).cmdloop()
