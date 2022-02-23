@@ -151,3 +151,36 @@ def validate_month(year, type='your'):
         return month
     else:
         month = validate_month(year, 'valid')
+
+
+
+def ask_to_add_m_to_playlist():
+    print("\n")
+    y_and_n = input("Do you want to create a new playlist. Press Y or N\n ")
+
+    if y_and_n.lower() == 'y' or y_and_n.lower() == 'yes':
+        return True
+    elif y_and_n.lower() == 'n' or y_and_n.lower() == 'no':        
+        return False
+    else: 
+        print("Please enter valid input")        
+        ask_to_add_m_to_playlist()
+
+
+def validate_playlist_name(type='your'):
+    print("*** Set Name ***")
+    name = input(f"Please enter {type} playlist name: ")
+    if name == '':
+        print("\n")
+        print("Playlist name cannot be empty.")
+        name = validate_name('valid')
+    return name
+
+def validate_song_id():
+    print("*** Set Name ***")
+    id = input(f"enter song id or press q to end: ")
+    regex = '^[0-9]+$'
+    if not re.fullmatch(regex, id):
+        print("\n")
+        id = validate_song_id()
+    return id

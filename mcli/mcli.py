@@ -12,6 +12,7 @@ import jwt
 import requests
 import utils
 import os.path
+from os import path
 
 
 # The services check only that we pass an authorization,
@@ -47,6 +48,16 @@ def get_url(name, port):
 def get_auth_url(name, port):
     return "http://{}:{}/api/v1/auth/".format(name, port)
 
+def get_auth_url_hard(name, port):
+    return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
+
+
+def get_music_url(name, port):
+    return "http://{}:{}/api/v1/music/".format(name, port)    
+
+def get_music_url_hard(name, port):
+    return "http://0.0.0.0:5000/api/v1/music/"
+
 
 def parse_quoted_strings(arg):
     """
@@ -81,7 +92,7 @@ class Auth(cmd.Cmd):
         #     "email": email,
         #     "password": passw,
         # })
-        url = get_auth_url(self.name, self.port)
+        url = get_auth_url_hard(self.name, self.port)
         payload = {
             "name": name,
             "email": email,
@@ -119,7 +130,7 @@ class Auth(cmd.Cmd):
 
 
         # For test
-        url = get_auth_url(self.name, self.port)
+        url = get_auth_url_hard(self.name, self.port)
         payload = {
             'email': email,
             'password': passw,
@@ -162,6 +173,82 @@ class Mcli(cmd.Cmd):
                         Enter 'help' for command list.
                         'Tab' character autocompletes commands.
                      """
+
+    def show_music_list(self):
+        """
+        """
+        url = get_music_url_hard(self.name, self.port2)
+
+        url = f"{url}getMusicList"
+
+        
+        r = requests.get(
+            url,
+            headers={
+                'Content-Type': 'application/json'
+            }
+        )
+        
+        res = r.json()
+        song_list = []
+        print("uuid track_name genre") 
+        for _item in res['Items']:
+            uuid = _item['uuid']['S']
+            track_name = _item['track_name']['S']
+            genre = _item['genre']['S']
+
+            song_list.append({
+                "uuid": _item['uuid']['S'],
+                "artist_name": _item['artist_name']['S'],
+                "track_name": _item['track_name']['S'],
+                "release_date": _item['release_date']['S'],
+                "genre": _item['genre']['S'],
+                "lyrics": _item['lyrics']['S'],
+                "topic": _item['topic']['S']
+            })
+            print(f"{uuid} {track_name} {genre}") 
+
+        return song_list            
+
+    def do_add_music_to_playlist(self, arg):
+        is_yes_or_no = utils.ask_to_add_m_to_playlist()
+
+        if is_yes_or_no:
+            print("This is Yes")
+            playlist_name = utils.validate_playlist_name(type='your')
+            print("Select songs from below or press Q to end")
+            song_list = self.show_music_list()
+            id = utils.validate_song_id()
+            filtered_song = filter(lambda s: s['uuid'] == id, song_list)
+
+            songs = list(filtered_song)
+
+            if len(songs) > 0:
+
+                f = open("local-storage.txt", "r")
+                token = f.read()
+                name, email = utils.decode_jwt(str(token))
+                
+                payload = songs[0]
+                payload['username'] = name
+                payload['email'] = email
+                payload['playlist_name'] = playlist_name
+
+
+                print("Payload -----><")
+                print(payload)
+                # call api to add song to the playlist
+                url = get_music_url_hard(self.name, self.port2)
+                r = requests.post(
+                    f"{url}addToPlaylist",
+                    json=payload,
+                    headers={
+                        'Content-Type': 'application/json'
+                    }
+                )
+                res = r.json()
+                print(res)
+                print(f"*** {res['message']} ***")
 
     def do_subcribe(self, arg):
         """
@@ -220,8 +307,12 @@ class Mcli(cmd.Cmd):
 
 if __name__ == '__main__':
     args = parse_args()
+    token = ''
 
-    f = open("local-storage.txt", "w+")
+    if not path.exists("local-storage.txt"):
+        f = open("local-storage.txt", "w+")
+        
+    f = open("local-storage.txt", "r")
     token = f.read()
 
     if token != '':
