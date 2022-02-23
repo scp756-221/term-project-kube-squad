@@ -1,0 +1,5 @@
+
+----------------xxxxx----------------xxxxx----------------xxxxx----------------xxxxx----------------xxxxx----------------
+# Reduce dataset (reduce_dataset_sql.py) - to only get the first 100 rows of the csv file
+
+spark-submit reduce_dataset_sql.py "../../music dataset/tcc_ceds_music_with_id_less_cols.csv" "../../music dataset/music_100"
