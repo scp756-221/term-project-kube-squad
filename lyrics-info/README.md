@@ -21,7 +21,7 @@ The lyrics info service maintains a list of meta data related to songs such as l
     http://127.0.0.1:5000/api/v1/music/info/lyricsinfo/populate
 
 3. Get data from the lyrics info table <br>
-   http://127.0.0.1:5000/api/v1/music/info/lyricsinfo/create
+   http://127.0.0.1:5000/api/v1/music/info/<music_id>
 
    Response: <br>
         { <br>
