@@ -67,9 +67,13 @@ def register_user():
                                               email, hashed)
 
         if (reg_res['ResponseMetadata']['HTTPStatusCode'] == 200):
+            encoded = jwt.encode({'name': name, 'email': email},
+                                 'music-app-an2t-secret',
+                                 algorithm='HS256')
             return {
                 'status': True,
                 'message': 'User registered successfully',
+                'token': encoded
             }
 
         return {
