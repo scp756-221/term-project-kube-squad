@@ -16,7 +16,7 @@ import jwt
 from flask import Blueprint
 from flask import Flask
 from flask import request
-from prometheus_flask_exporter import PrometheusMetrics
+# from prometheus_flask_exporter import PrometheusMetrics
 from middleware import handle_all_exceptions
 
 # Standard library modules
@@ -26,8 +26,8 @@ import auth_handler as dynamodb
 
 app = Flask(__name__)
 
-metrics = PrometheusMetrics(app)
-metrics.info('app_info', 'User process')
+# metrics = PrometheusMetrics(app)
+# metrics.info('app_info', 'User process')
 
 bp = Blueprint('app', __name__)
 

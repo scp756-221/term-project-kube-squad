@@ -11,6 +11,7 @@ import jwt
 # Installed packages
 import requests
 import utils
+import os.path
 
 
 # The services check only that we pass an authorization,
@@ -29,6 +30,11 @@ def parse_args():
         )
     argp.add_argument(
         'port',
+        type=int,
+        help="Port number of music server"
+        )
+    argp.add_argument(
+        'port2',
         type=int,
         help="Port number of music server"
         )
@@ -148,13 +154,54 @@ class Mcli(cmd.Cmd):
     def __init__(self, args):
         self.name = args.name
         self.port = args.port
+        self.port2 = args.port2
         cmd.Cmd.__init__(self)
         self.prompt = 'mql: '
         self.intro = """
-Command-line interface to music service.
-Enter 'help' for command list.
-'Tab' character autocompletes commands.
-"""
+                        Command-line interface to music service.
+                        Enter 'help' for command list.
+                        'Tab' character autocompletes commands.
+                     """
+
+    def do_subcribe(self, arg):
+        """
+        """
+        subcribe = utils.validate_subcription()
+        sub_type = utils.validate_type()
+        card_no = utils.validate_card()
+        cvv = utils.validate_cvv()
+        exp_year = utils.validate_year()
+        exp_month = utils.validate_month(exp_year)
+
+        with open("local-storage.txt", "r") as file:
+            token = file.readline()
+
+        name, email = utils.decode_jwt(token)
+
+        url = get_auth_url(self.name, self.port2)
+        payload = {
+            "email": email,
+            "subcription": subcribe,
+            "subcription_type": sub_type,
+            "card_no": card_no,
+            "cvv": cvv,
+            "exp_month": exp_month,
+            "exp_year": exp_year
+        } 
+        r = requests.post(
+            f"{url}subcribe",
+            json=payload,
+            headers={
+                'Content-Type': 'application/json'
+            }
+        )
+        res = r.json()
+        print(res)
+        if res['status']:
+            print("*** Payment sucessfull and subcribed***")
+        else:
+           print(f"*** {res['message']} ***")
+
 
 
     def do_logout(self, arg):
@@ -174,7 +221,7 @@ Enter 'help' for command list.
 if __name__ == '__main__':
     args = parse_args()
 
-    f = open("local-storage.txt", "r")
+    f = open("local-storage.txt", "w+")
     token = f.read()
 
     if token != '':
