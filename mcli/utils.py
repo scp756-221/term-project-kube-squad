@@ -1,5 +1,6 @@
 import re
 import getpass
+import jwt
 
 def validate_name(type='your'):
     print("*** Set Name ***")
@@ -51,3 +52,7 @@ def validate_pwd(type='your'):
         print("Password cannot be empty.")
         passw, passw2 = validate_pwd('valid')
     return passw
+
+def decode_jwt(token=''):
+    decoded = jwt.decode(token, options={"verify_signature": False})
+    return decoded['name'], decoded['email']
