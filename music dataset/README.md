@@ -1,3 +1,12 @@
+
+tcc_ceds_music.csv - original dataset
+
+tcc_ceds_music_with_id_less_cols.csv - modified original dataset by removing columns not required
+
+music_100.csv - reduced the modified dataset to just (top) 100 rows to reduce the AWS incurred costs.
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
 Source of the dataset: https://data.mendeley.com/datasets/3t9vbwxgr5/2
 
 Citation:
