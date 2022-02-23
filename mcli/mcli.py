@@ -203,6 +203,40 @@ class Mcli(cmd.Cmd):
            print(f"*** {res['message']} ***")
 
 
+    def do_add_card(self, arg):
+        """
+        """
+        card_no = utils.validate_card()
+        cvv = utils.validate_cvv()
+        exp_year = utils.validate_year()
+        exp_month = utils.validate_month(exp_year)
+
+        with open("local-storage.txt", "r") as file:
+            token = file.readline()
+
+        name, email = utils.decode_jwt(token)
+
+        url = get_auth_url(self.name, self.port2)
+        payload = {
+            "card_no": card_no,
+            "cvv": cvv,
+            "exp_month": exp_month,
+            "exp_year": exp_year
+        } 
+        r = requests.post(
+            f"{url}addcard",
+            json=payload,
+            headers={
+                'Content-Type': 'application/json'
+            }
+        )
+        res = r.json()
+        if res['status']:
+            print(f"*** {res['message']} ***")
+        else:
+            print(f"*** {res['message']} ***")
+
+
 
     def do_logout(self, arg):
         """
