@@ -8,18 +8,42 @@ DK=docker
 APP_VER_TAG=v1
 
 list-images:
-	$(DK) iamge ls
+	$(DK) image ls
+
+# ************ IMAGE BUILDING ************
+
+build: build-auth
 
 build-auth:
 	$(DK) build $(ARCH) --file auth/Dockerfile --tag ghcr.io/$(REGID)/auth:$(APP_VER_TAG) auth
+
+build-playlist:
+	$(DK) build $(ARCH) --file playlist/Dockerfile --tag ghcr.io/$(REGID)/playlist:$(APP_VER_TAG) playlist
+
+# ************ CONTAINER RUNNING ************
+
+run: run-auth
+
+run-auth:
+	$(DK) container run -p 3000:3000 --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
+run-playlist:
+	$(DK) container run -p 4000:4000 --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
+
+
+# ************ CONTAINER REMOVING ************
+
+remove-auth:
+	$(DK) rm auth
+
+remove-playlist:
+	$(DK) rm playlist
 
 tag-auth:
 	$(DK) image tag auth:$(APP_VER_TAG) ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
 
 push-auth:
 	$(DK) image push ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
-run-auth:
-	$(DK) container run -p 30000:30000 --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
+
 remove-auth:
 	$(DK) rm auth
 
