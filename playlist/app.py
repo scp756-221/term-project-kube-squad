@@ -97,8 +97,22 @@ def add_music_to_playlist():
             'message': "Somthing went wrong!"
         }
 
-    
+"""
+PREMIUM MUSIC SERVICES
+1. Song Lyrics
+2. Artist Name
+3. Song Genre
+4. Song Release Date
+5. Song Topic
+"""
 
+@bp.route('<song_id>/lyrics', methods=['GET'])
+@handle_all_exceptions
+def get_music_lyrics(song_id):    
+    res = dynamodb.getSongLyrics(song_id)  
+    response = {}
+    response['message'] = res
+    return jsonify(response)
 
 app.register_blueprint(bp, url_prefix='/api/v1/music/')
 

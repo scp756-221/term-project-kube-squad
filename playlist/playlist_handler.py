@@ -14,6 +14,8 @@ AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
 REGION_NAME = config("REGION_NAME")
 import uuid
 
+from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
 
 client = boto3.client(
     'dynamodb',
@@ -132,7 +134,27 @@ def addMusicToPlayList(data):
     )
     return response
 
+"""
+PREMIUM MUSIC SERVICES
+1. Song Lyrics
+2. Artist Name
+3. Song Genre
+4. Song Release Date
+5. Song Topic
+"""
 
+def getSongLyrics(song_id):
+    try:
+        resp = MusicTable.query(
+            KeyConditionExpression=Key('uuid').eq(song_id)
+        )
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+    else:
+        if resp['Items'] == []:
+            return ""
+        else:    
+            return resp['Items'][0]['lyrics']
 
 # def addUserToUserTable(name, email, password):
 #     response = UserTable.put_item(
