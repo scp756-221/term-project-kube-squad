@@ -2,6 +2,8 @@ import re
 import jwt
 import getpass
 from datetime import date
+import requests
+
 
 
 def validate_name(type='your'):
@@ -177,10 +179,13 @@ def validate_playlist_name(type='your'):
     return name
 
 def validate_song_id():
-    print("*** Set Name ***")
     id = input(f"enter song id or press q to end: ")
     regex = '^[0-9]+$'
-    if not re.fullmatch(regex, id):
+
+    if id.lower() == 'q':
+        return id
+    elif (not re.fullmatch(regex, id)):
         print("\n")
+        print("Invalid input")
         id = validate_song_id()
     return id
