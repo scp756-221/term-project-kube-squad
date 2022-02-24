@@ -12,7 +12,7 @@ list-images:
 
 # ************ IMAGE BUILDING ************
 
-build: build-auth
+build: build-auth build-playlist
 
 build-auth:
 	$(DK) build $(ARCH) --file auth/Dockerfile --tag ghcr.io/$(REGID)/auth:$(APP_VER_TAG) auth
@@ -22,30 +22,29 @@ build-playlist:
 
 # ************ CONTAINER RUNNING ************
 
-run: run-auth
+run: run-auth run-playlist
 
 run-auth:
-	$(DK) container run -p 3000:3000 --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
+	$(DK) container run -d -p 3000:3000 --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
+
 run-playlist:
-	$(DK) container run -p 4000:4000 --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
+	$(DK) container run -d -p 4000:4000 --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
 
+# ************ CONTAINER STOPPING & removing ************
 
-# ************ CONTAINER REMOVING ************
+stop: stop-auth stop-playlist
 
-remove-auth:
+stop-auth:
+	$(DK) stop auth
 	$(DK) rm auth
 
-remove-playlist:
+stop-playlist:
+	$(DK) stop playlist
 	$(DK) rm playlist
 
-tag-auth:
-	$(DK) image tag auth:$(APP_VER_TAG) ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
+# ************ CONTAINER PUSHING ************
 
-push-auth:
-	$(DK) image push ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
 
-remove-auth:
-	$(DK) rm auth
 
 
 
