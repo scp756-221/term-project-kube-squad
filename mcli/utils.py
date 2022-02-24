@@ -169,6 +169,19 @@ def ask_to_add_m_to_playlist():
         ask_to_add_m_to_playlist()
 
 
+def ask_to_view_existing_playlist():
+    print("\n")
+    y_and_n = input("Enter Y to view existing playlist or N to exit playlist microservice")
+
+    if y_and_n.lower() == 'y' or y_and_n.lower() == 'yes':
+        return True
+    elif y_and_n.lower() == 'n' or y_and_n.lower() == 'no':
+        return False
+    else:
+        print("Please enter valid input")
+        ask_to_view_existing_playlist()
+
+
 def validate_playlist_name(type='your'):
     print("*** Set Name ***")
     name = input(f"Please enter {type} playlist name: ")
