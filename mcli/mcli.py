@@ -211,6 +211,8 @@ class Mcli(cmd.Cmd):
         return song_list            
 
     def do_add_music_to_playlist(self, arg):
+        """
+        """
         is_yes_or_no = utils.ask_to_add_m_to_playlist()
 
         if is_yes_or_no:
