@@ -189,3 +189,40 @@ def validate_song_id():
         print("Invalid input")
         id = validate_song_id()
     return id
+
+
+def add_song_by_song_id(playlist_name, song_list, url):
+    id = validate_song_id()
+
+    if id == 'q':
+        return 'All songs added to playlist.'
+
+    filtered_song = filter(lambda s: s['uuid'] == id, song_list)
+
+    songs = list(filtered_song)
+
+    if len(songs) > 0:
+
+        f = open("local-storage.txt", "r")
+        token = f.read()
+        name, email = decode_jwt(str(token))
+        
+        payload = songs[0]
+        payload['username'] = name
+        payload['email'] = email
+        payload['playlist_name'] = playlist_name
+        # call api to add song to the playlist
+        r = requests.post(
+            f"{url}addToPlaylist",
+            json=payload,
+            headers={
+                'Content-Type': 'application/json'
+            }
+        )
+        res = r.json()
+        print(f"*** {res['message']} ***")    
+
+        if id.lower() != 'q':
+            add_song_by_song_id(playlist_name, song_list, url)
+        else:     
+            return 'All songs added to playlist.'

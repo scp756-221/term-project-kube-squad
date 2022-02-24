@@ -220,37 +220,9 @@ class Mcli(cmd.Cmd):
             playlist_name = utils.validate_playlist_name(type='your')
             print("Select songs from below or press Q to end")
             song_list = self.show_music_list()
-            id = utils.validate_song_id()
-            filtered_song = filter(lambda s: s['uuid'] == id, song_list)
-
-            songs = list(filtered_song)
-
-            if len(songs) > 0:
-
-                f = open("local-storage.txt", "r")
-                token = f.read()
-                name, email = utils.decode_jwt(str(token))
-                
-                payload = songs[0]
-                payload['username'] = name
-                payload['email'] = email
-                payload['playlist_name'] = playlist_name
-
-
-                print("Payload -----><")
-                print(payload)
-                # call api to add song to the playlist
-                url = get_music_url_hard(self.name, self.port2)
-                r = requests.post(
-                    f"{url}addToPlaylist",
-                    json=payload,
-                    headers={
-                        'Content-Type': 'application/json'
-                    }
-                )
-                res = r.json()
-                print(res)
-                print(f"*** {res['message']} ***")
+            url = get_music_url_hard(self.name,self.port2)
+            done_message = utils.add_song_by_song_id(playlist_name, song_list, url)
+            print(done_message)
 
     def do_subcribe(self, arg):
         """
