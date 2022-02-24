@@ -12,7 +12,7 @@ list-images:
 
 # ************ IMAGE BUILDING ************
 
-build: build-auth build-playlist
+build: build-auth build-playlist build-subcription
 
 build-auth:
 	$(DK) build $(ARCH) --file auth/Dockerfile --tag ghcr.io/$(REGID)/auth:$(APP_VER_TAG) auth
@@ -20,9 +20,12 @@ build-auth:
 build-playlist:
 	$(DK) build $(ARCH) --file playlist/Dockerfile --tag ghcr.io/$(REGID)/playlist:$(APP_VER_TAG) playlist
 
+build-subcription:
+	$(DK) build $(ARCH) --file subcription/Dockerfile --tag ghcr.io/$(REGID)/subcription:$(APP_VER_TAG) subcription
+
 # ************ CONTAINER RUNNING ************
 
-run: run-auth run-playlist
+run: run-auth run-playlist run-playlist
 
 run-auth:
 	$(DK) container run -d -p 3000:3000 --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
@@ -30,9 +33,12 @@ run-auth:
 run-playlist:
 	$(DK) container run -d -p 4000:4000 --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
 
+run-subcription:
+	$(DK) container run -d -p 5000:5000 --name subcription ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)
+
 # ************ CONTAINER STOPPING & removing ************
 
-stop: stop-auth stop-playlist
+stop: stop-auth stop-playlist stop-subcription
 
 stop-auth:
 	$(DK) stop auth
@@ -41,6 +47,11 @@ stop-auth:
 stop-playlist:
 	$(DK) stop playlist
 	$(DK) rm playlist
+
+stop-subcription:
+	$(DK) stop subcription
+	$(DK) rm subcription
+
 
 # ************ CONTAINER PUSHING ************
 
