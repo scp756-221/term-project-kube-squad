@@ -216,13 +216,29 @@ class Mcli(cmd.Cmd):
         is_yes_or_no = utils.ask_to_add_m_to_playlist()
 
         if is_yes_or_no:
-            print("This is Yes")
+            print("You entered Yes")
             playlist_name = utils.validate_playlist_name(type='your')
             print("Select songs from below or press Q to end")
             song_list = self.show_music_list()
             url = get_music_url_hard(self.name,self.port2)
             done_message = utils.add_song_by_song_id(playlist_name, song_list, url)
             print(done_message)
+
+        else:
+            print("You entered No")
+            print("\nThis feature is work in progress.....")
+            is_yes_or_no = utils.ask_to_view_existing_playlist()
+
+            if is_yes_or_no:
+                print("You should now see the playlist here: ")
+                print("\nfunctionailty not added: ")
+            else:
+                print("You should exit the microservice: ")
+                print("\nfunctionailty not added: ")
+
+
+            
+
 
     def do_subcribe(self, arg):
         """
