@@ -225,19 +225,15 @@ class Mcli(cmd.Cmd):
             print(done_message)
 
         else:
-            print("You entered No")
-            print("\nThis feature is work in progress.....")
+            print("You entered No - not creating a new plalist")
             is_yes_or_no = utils.ask_to_view_existing_playlist()
 
             if is_yes_or_no:
-                print("You should now see the playlist here: ")
-                print("\nfunctionailty not added: ")
+                print("\nYou should now see the playlist here: ")
+                print("functionailty not added: ")
             else:
-                print("You should exit the microservice: ")
-                print("\nfunctionailty not added: ")
+                print("\nYou entered N - exiting the playlist microservice ")
 
-
-            
 
 
     def do_subcribe(self, arg):
