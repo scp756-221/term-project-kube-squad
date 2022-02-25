@@ -33,8 +33,7 @@ resource = boto3.resource(
 # BookTable = resource.Table('Book')
 PlaylistTable = resource.Table('playlist')
 MusicTable = resource.Table('music')
-
-
+UserTable = resource.Table('User')
 
 def CreateTablePlaylist():
     client.create_table(
@@ -142,6 +141,19 @@ PREMIUM MUSIC SERVICES
 4. Song Release Date
 5. Song Topic
 """
+
+def checkUserIsSubscribed(email):
+    try:
+        resp = UserTable.query(
+            KeyConditionExpression=Key('email').eq(email)
+        )
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+    else:       
+        if resp['Items'] == []:
+            return 0
+        else:
+            return resp['Items'][0]['subscribe']
 
 def getSongLyrics(song_id):
     try:
