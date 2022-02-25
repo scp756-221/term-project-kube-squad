@@ -14,10 +14,16 @@ SERVER=0.0.0.0
 SERVICE = auth
 
 list-images:
-	$(DK) image ls
+	docker image ls
 
 list-IPaddresses:
-	$(DK) inspect $(SERVICE) | grep "IPAddress"
+	docker inspect $(SERVICE) | grep "IPAddress"
+
+create-stack:
+	aws cloudformation create-stack --capabilities CAPABILITY_NAMED_IAM --stack-name csv-to-dynamo-db --template-body file://dynamo-db/CSVToDynamo.template --parameters ParameterKey=BucketName,ParameterValue=music-service-$(REGID) ParameterKey=DynamoDBTableName,ParameterValue=music ParameterKey=FileName,ParameterValue=music_100.csv
+upload-music:
+	aws s3 cp dynamo-db/music_100.csv s3://music-service-$(REGID)/music_100.csv
+
 
 # ************ IMAGE BUILDING ************
 
@@ -27,29 +33,29 @@ build-network:
 	docker network create music-service-net
 
 build-auth:
-	$(DK) build $(ARCH) --file auth/Dockerfile --tag ghcr.io/$(REGID)/auth:$(APP_VER_TAG) auth
+	docker build $(ARCH) --file auth/Dockerfile --tag ghcr.io/$(REGID)/auth:$(APP_VER_TAG) auth
 
 build-playlist:
-	$(DK) build $(ARCH) --file playlist/Dockerfile --tag ghcr.io/$(REGID)/playlist:$(APP_VER_TAG) playlist
+	docker build $(ARCH) --file playlist/Dockerfile --tag ghcr.io/$(REGID)/playlist:$(APP_VER_TAG) playlist
 
 build-subcription:
-	$(DK) build $(ARCH) --file subcription/Dockerfile --tag ghcr.io/$(REGID)/subcription:$(APP_VER_TAG) subcription
+	docker build $(ARCH) --file subcription/Dockerfile --tag ghcr.io/$(REGID)/subcription:$(APP_VER_TAG) subcription
 
 build-mcli:
-	$(DK) build $(ARCH) --file mcli/Dockerfile --tag ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) mcli
+	docker build $(ARCH) --file mcli/Dockerfile --tag ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) mcli
 
 # ************ CONTAINER RUNNING ************
 
 run: run-auth run-playlist run-subcription run-mcli
 
 run-auth:
-	$(DK) container run -d --net  music-service-net --rm -p $(AUTH_PORT):$(AUTH_PORT) --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
+	docker container run -d --net  music-service-net --rm -p $(AUTH_PORT):$(AUTH_PORT) --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
 
 run-playlist:
-	$(DK) container run -d --net  music-service-net --rm -p $(PLAYLIST_PORT):$(PLAYLIST_PORT) --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
+	docker container run -d --net  music-service-net --rm -p $(PLAYLIST_PORT):$(PLAYLIST_PORT) --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
 
 run-subcription:
-	$(DK) container run -d --net  music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subcription ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)
+	docker container run -d --net  music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subcription ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)
 
 run-mcli:
 	docker container run -it --rm --net  music-service-net --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(AUTH_PORT) $(PLAYLIST_PORT) 
@@ -59,31 +65,27 @@ run-mcli:
 stop: stop-auth stop-playlist stop-subcription stop-mcli
 
 stop-auth:
-	$(DK) stop auth
+	docker stop auth
 	# $(DK) rm auth
 
 stop-playlist:
-	$(DK) stop playlist
+	docker stop playlist
 	# $(DK) rm playlist
 
 stop-subcription:
-	$(DK) stop subcription
+	docker stop subcription
 	# $(DK) rm subcription
 
 stop-mcli:
-	$(DK) stop mcli
+	docker stop mcli
 	# $(DK) rm mcli
 
 stop-network:
-	docker network music-service-net
+	docker stop network music-service-net
 
 
 
 # ************ CONTAINER PUSHING ************
-
-
-
-
 
 instantionate-local: instantionate-.env instantionate-python
 
