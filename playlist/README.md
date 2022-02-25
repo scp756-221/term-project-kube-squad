@@ -74,6 +74,7 @@ Password will be encrypted before getting added to the table.
 Method type: GET
 http://127.0.0.1:5000/api/v1/music/<music_id>/lyrics
 
+If user has an active subscription:
 Success response:
 
 {
@@ -86,9 +87,12 @@ If song does not exist:
     "message": ""
 }
 
-Enhancements to follow: 
-1. check whether user has an active subscription before retrieving the lyrics
-2. add lyrics option to MCLI
+If user is not subscribed:
+
+{
+    "message": "Please purchase a subscription to use this feature"
+}
+
 ```
 
 ### References
