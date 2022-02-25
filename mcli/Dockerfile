@@ -1,6 +1,6 @@
 FROM quay.io/bitnami/python:3.8.6-prod-debian-10-r81
 
-WORKDIR /code
+WORKDIR /mcli
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -9,6 +9,8 @@ COPY mcli.py ./
 
 COPY utils.py ./
 
-COPY local-storage.txt /.
+COPY local-storage.txt ./
+
+COPY .env ./
 
 CMD ["python", "mcli.py", "0.0.0.0", "3000", "5000"]

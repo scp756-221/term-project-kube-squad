@@ -13,6 +13,6 @@ COPY sub_app.py ./
 
 COPY sub_handler.py ./
 
-EXPOSE 5000
+EXPOSE 4000
 
-CMD ["python", "sub_app.py", "5000"]
+CMD ["python", "sub_app.py", "4000"]
