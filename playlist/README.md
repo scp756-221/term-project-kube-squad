@@ -66,6 +66,34 @@ Success Response:
 ```
 Password will be encrypted before getting added to the table.
 
+### Premium song info APIs
+
+1. Song Lyrics
+
+```bash
+Method type: GET
+http://127.0.0.1:5000/api/v1/music/<music_id>/lyrics
+
+If user has an active subscription:
+Success response:
+
+{
+    "message": "song lyrics will be here"
+}
+
+If song does not exist:
+
+{
+    "message": ""
+}
+
+If user is not subscribed:
+
+{
+    "message": "Please purchase a subscription to use this feature"
+}
+
+```
 
 ### References
 
