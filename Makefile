@@ -13,21 +13,40 @@ SUBSCRIPTION_PORT = 4000
 SERVER=0.0.0.0
 SERVICE = auth
 
-list-images:
+# **************************************************************************** AWS COMMANDS ****************************************************************************
+
+# ************ STACK COMMANDS ************
+create-stack:
+
+	aws cloudformation create-stack --capabilities CAPABILITY_NAMED_IAM --stack-name csv-to-dynamo-db --template-body file://dynamo-db/CSVToDynamo.template --parameters ParameterKey=BucketName,ParameterValue=music-service-$(REGID) ParameterKey=DynamoDBTableName,ParameterValue=music ParameterKey=FileName,ParameterValue=music_100.csv
+
+delete-stack:
+	aws cloudformation delete-stack --stack-name csv-to-dynamo-db
+
+upload-music:
+	aws s3 cp dynamo-db/music_100.csv s3://music-service-$(REGID)/music_100.csc
+
+empty-bucket:
+	aws s3 rm s3://music-service-$(REGID) --recursive
+
+delete-bucket:
+	aws s3 rb s3://music-service-$(REGID) --force
+
+# **************************************************************************** DOCKER COMMANDS ****************************************************************************
+
+# ************ HELPFUL COMMANDS ************
+
+list-containers-all:
 	docker image ls
 
-list-IPaddresses:
+list-ipaddress:
 	docker inspect $(SERVICE) | grep "IPAddress"
 
-create-stack:
-	aws cloudformation create-stack --capabilities CAPABILITY_NAMED_IAM --stack-name csv-to-dynamo-db --template-body file://dynamo-db/CSVToDynamo.template --parameters ParameterKey=BucketName,ParameterValue=music-service-$(REGID) ParameterKey=DynamoDBTableName,ParameterValue=music ParameterKey=FileName,ParameterValue=music_100.csv
-upload-music:
-	aws s3 cp dynamo-db/music_100.csv s3://music-service-$(REGID)/music_100.csv
-
+list-containers-running:
+	docker ps
 
 # ************ IMAGE BUILDING ************
-
-build: build-network build-auth build-playlist build-subcription build-mcli
+build-docker: build-network build-auth build-playlist build-subcription build-mcli
 
 build-network:
 	docker network create music-service-net
@@ -46,7 +65,7 @@ build-mcli:
 
 # ************ CONTAINER RUNNING ************
 
-run: run-auth run-playlist run-subcription run-mcli
+run-docker: run-auth run-playlist run-subcription run-mcli
 
 run-auth:
 	docker container run -d --net  music-service-net --rm -p $(AUTH_PORT):$(AUTH_PORT) --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
@@ -60,34 +79,44 @@ run-subcription:
 run-mcli:
 	docker container run -it --rm --net  music-service-net --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(AUTH_PORT) $(PLAYLIST_PORT) 
 
-# ************ CONTAINER STOPPING & removing ************
+# ************ CONTAINER STOPPING ************
 
-stop: stop-auth stop-playlist stop-subcription stop-mcli
+stop-docker: stop-auth stop-playlist stop-subcription stop-mcli
 
 stop-auth:
 	docker stop auth
-	# $(DK) rm auth
 
 stop-playlist:
 	docker stop playlist
-	# $(DK) rm playlist
 
 stop-subcription:
 	docker stop subcription
-	# $(DK) rm subcription
 
 stop-mcli:
 	docker stop mcli
-	# $(DK) rm mcli
 
-stop-network:
-	docker stop network music-service-net
+# ************ CONTAINER REMOVING ************
 
+rm-docker: rm-auth rm-playlist rm-subcription rm-mcli
 
+rm-auth:
+	docker rm auth
 
-# ************ CONTAINER PUSHING ************
+rm-playlist:
+	docker rm playlist
 
-instantionate-local: instantionate-.env instantionate-python
+rm-subcription:
+	docker rm subcription
+
+rm-mcli:
+	docker rm mcli
+
+rm-network:
+	docker network rm music-service-net
+
+# **************************************************************************** CREDENTIAL COMMANDS ****************************************************************************
+
+# ************ CREDENTIAL CREATION ************
 
 instantionate-.env:
 	cp .env auth
@@ -95,28 +124,7 @@ instantionate-.env:
 	cp .env playlist
 	cp .env subcription
 
-instantionate-python:
-	pip install virtualenv
-
-	virtualenv auth/venv
-	auth/venv/bin/pip install -r auth/requirements.txt
-
-	virtualenv mcli/venv
-	mcli/venv/bin/pip install -r auth/requirements.txt
-
-	virtualenv playlist/venv
-	playlist/venv/bin/pip install -r auth/requirements.txt
-
-	virtualenv subcription/venv
-	subcription/venv/bin/pip install -r auth/requirements.txt
-
-cleanup: cleanup-venv
-
-cleanup-venv:
-	rm -r auth/venv
-	rm -r mcli/venv
-	rm -r playlist/venv
-	rm -r subcription/venv
+# ************ CREDENTIAL REMOVAL ************
 
 cleanup-.env:
 	rm auth/.env
@@ -124,8 +132,3 @@ cleanup-.env:
 	rm playlist/.env
 	rm subcription/.env
 
-cleanup-__pycache__:
-	rm -r auth/__pycache__
-	rm -r mcli/__pycache__
-	rm -r playlist/__pycache__
-	rm -r subcription/__pycache__
