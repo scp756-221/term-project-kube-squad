@@ -17,7 +17,7 @@ list-images:
 	$(DK) image ls
 
 list-IPaddresses:
-	$(DK) sudo docker inspect $(SERVICE) | grep "IPAddress"
+	$(DK) inspect $(SERVICE) | grep "IPAddress"
 
 # ************ IMAGE BUILDING ************
 

@@ -49,14 +49,16 @@ def get_auth_url(name, port):
     return "http://{}:{}/api/v1/auth/".format(name, port)
 
 def get_auth_url_hard(name, port):
-    return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
+    # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
+    return "http://auth:3000/api/v1/auth/".format(name, port)
 
 
 def get_music_url(name, port):
     return "http://{}:{}/api/v1/music/".format(name, port)    
 
 def get_music_url_hard(name, port):
-    return "http://0.0.0.0:5000/api/v1/music/"
+    # return "http://0.0.0.0:5000/api/v1/music/"
+    return "http://playlist:5000/api/v1/music/"
 
 
 def parse_quoted_strings(arg):
@@ -128,9 +130,9 @@ class Auth(cmd.Cmd):
         email = utils.validate_email()
         passw = utils.validate_pwd()
 
-
         # For test
         url = get_auth_url_hard(self.name, self.port)
+        
         payload = {
             'email': email,
             'password': passw,
@@ -178,9 +180,9 @@ class Mcli(cmd.Cmd):
         """
         """
         url = get_music_url_hard(self.name, self.port2)
+        print(url)
 
         url = f"{url}getMusicList"
-
         
         r = requests.get(
             url,
@@ -188,7 +190,6 @@ class Mcli(cmd.Cmd):
                 'Content-Type': 'application/json'
             }
         )
-        
         res = r.json()
         song_list = []
         print("uuid track_name genre") 
