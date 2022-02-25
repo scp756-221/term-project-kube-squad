@@ -7,12 +7,17 @@ ARCH=--platform x86_64
 DK=docker
 APP_VER_TAG=v1
 
+PLAYLIST_PORT = 3000
+AUTH_PORT = 5000
+SUBSCRIPTION_PORT = 4000
+SERVER=0.0.0.0
+
 list-images:
 	$(DK) image ls
 
 # ************ IMAGE BUILDING ************
 
-build: build-auth build-playlist build-subcription
+build: build-auth build-playlist build-subcription build-mcli
 
 build-auth:
 	$(DK) build $(ARCH) --file auth/Dockerfile --tag ghcr.io/$(REGID)/auth:$(APP_VER_TAG) auth
@@ -23,18 +28,24 @@ build-playlist:
 build-subcription:
 	$(DK) build $(ARCH) --file subcription/Dockerfile --tag ghcr.io/$(REGID)/subcription:$(APP_VER_TAG) subcription
 
+build-mcli:
+	$(DK) build $(ARCH) --file mcli/Dockerfile --tag ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) mcli
+
 # ************ CONTAINER RUNNING ************
 
-run: run-auth run-playlist run-playlist
+run: run-auth run-playlist run-subcription
 
 run-auth:
-	$(DK) container run -d -p 3000:3000 --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
+	$(DK) container run -d --rm -p $(AUTH_PORT):$(AUTH_PORT) --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
 
 run-playlist:
-	$(DK) container run -d -p 4000:4000 --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
+	$(DK) container run -d --rm -p $(PLAYLIST_PORT):$(PLAYLIST_PORT) --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
 
 run-subcription:
-	$(DK) container run -d -p 5000:5000 --name subcription ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)
+	$(DK) container run -d --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subcription ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)
+
+run-mcli:
+	docker container run -it --rm --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(AUTH_PORT) $(PLAYLIST_PORT) 
 
 # ************ CONTAINER STOPPING & removing ************
 
@@ -42,15 +53,19 @@ stop: stop-auth stop-playlist stop-subcription
 
 stop-auth:
 	$(DK) stop auth
-	$(DK) rm auth
+	# $(DK) rm auth
 
 stop-playlist:
 	$(DK) stop playlist
-	$(DK) rm playlist
+	# $(DK) rm playlist
 
 stop-subcription:
 	$(DK) stop subcription
-	$(DK) rm subcription
+	# $(DK) rm subcription
+
+stop-mcli:
+	$(DK) stop mcli
+	# $(DK) rm mcli
 
 
 # ************ CONTAINER PUSHING ************

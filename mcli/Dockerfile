@@ -5,6 +5,10 @@ WORKDIR /code
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY mcli.py .
+COPY mcli.py ./
 
-CMD ["python", "mcli.py", "0.0.0.0", "30001"]
+COPY utils.py ./
+
+COPY local-storage.txt /.
+
+CMD ["python", "mcli.py", "0.0.0.0", "3000", "5000"]
