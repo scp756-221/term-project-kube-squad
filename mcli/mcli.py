@@ -309,7 +309,17 @@ class Mcli(cmd.Cmd):
         else:
             print(f"*** {res['message']} ***")
 
-
+    def do_view_song_lyrics(self, arg):
+        """
+        CLI option to view lyrics. 
+        To do - make this only available for subscribed users
+        """
+        song_id = utils.validate_song_id()
+        url = get_music_url_hard(self.name, self.port2)
+        url = url+str(song_id)+"/lyrics"
+        r = requests.get(url)
+        res = r.json()
+        print(f"*** {res['message']} ***")
 
     def do_logout(self, arg):
         """
