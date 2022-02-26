@@ -87,9 +87,9 @@ delete-table-user:
 
 initialize-docker: build-docker
 
-run-docker: run-auth run-playlist run-subcription run-mcli
+run-docker: run-auth run-playlist run-subscription run-mcli
 
-stop-docker: stop-auth stop-playlist stop-subcription stop-mcli
+stop-docker: stop-auth stop-playlist stop-subscription stop-mcli
 
 cleanup-docker: rm-network
 
@@ -130,8 +130,8 @@ run-auth:
 run-playlist:
 	docker container run -d --net  music-service-net --rm -p $(PLAYLIST_PORT):$(PLAYLIST_PORT) --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
 
-run-subcription:
-	docker container run -d --net  music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subcription ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)
+run-subscription:
+	docker container run -d --net  music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subscription ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)
 
 run-mcli:
 	docker container run -it --rm --net  music-service-net --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(AUTH_PORT) $(PLAYLIST_PORT) 
@@ -144,8 +144,8 @@ stop-auth:
 stop-playlist:
 	docker stop playlist
 
-stop-subcription:
-	docker stop subcription
+stop-subscription:
+	docker stop subscription
 
 stop-mcli:
 	docker stop mcli
@@ -159,8 +159,8 @@ rm-auth:
 rm-playlist:
 	docker rm playlist
 
-rm-subcription:
-	docker rm subcription
+rm-subscription:
+	docker rm subscription
 
 rm-mcli:
 	docker rm mcli

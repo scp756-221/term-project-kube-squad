@@ -52,6 +52,9 @@ def get_auth_url_hard(name, port):
     # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
     return "http://auth:3000/api/v1/auth/".format(name, port)
 
+def get_subscription_url_hard():
+    # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
+    return "http://subscription:4000/api/v1/subscribe/"
 
 def get_music_url(name, port):
     return "http://{}:{}/api/v1/music/".format(name, port)    
@@ -252,11 +255,12 @@ class Mcli(cmd.Cmd):
 
         name, email = utils.decode_jwt(token)
 
-        url = get_auth_url(self.name, self.port2)
+        url = get_subscription_url_hard()
+
         payload = {
             "email": email,
-            "subcription": subcribe,
-            "subcription_type": sub_type,
+            "subscription": subcribe,
+            "subscription_type": sub_type,
             "card_no": card_no,
             "cvv": cvv,
             "exp_month": exp_month,
@@ -270,9 +274,9 @@ class Mcli(cmd.Cmd):
             }
         )
         res = r.json()
-        print(res)
+
         if res['status']:
-            print("*** Payment sucessfull and subcribed***")
+            print("*** Payment successful and subscribed***")
         else:
            print(f"*** {res['message']} ***")
 
@@ -290,7 +294,7 @@ class Mcli(cmd.Cmd):
 
         name, email = utils.decode_jwt(token)
 
-        url = get_auth_url(self.name, self.port2)
+        url = get_subscription_url_hard()
         payload = {
             "card_no": card_no,
             "cvv": cvv,

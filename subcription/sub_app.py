@@ -90,10 +90,10 @@ def add_card():
 
 
 @bp.route('/subcribe', methods=['POST'])
-def update_subcription():
+def update_subscription():
     email =  request.json.get('email', None)
-    subcribe = request.json.get('subcription', None)
-    subcribe_type = request.json.get('subcription_type', None)
+    subcribe = request.json.get('subscription', None)
+    subcribe_type = request.json.get('subscription_type', None)
     card_no = request.json.get('card_no', None)
     cvv = request.json.get('cvv', None)
     exp_month = request.json.get('exp_month', None)
@@ -111,7 +111,7 @@ def update_subcription():
     #             'message': "You can subcribe later when you wish"
     #         }
 
-    if not subcribe_type or not email or not card_no or not cvv or not exp_month or not exp_year: 
+    if not subcribe_type or not email or not card_no or not cvv or not exp_month or not exp_year:
         return {
                 'status': False,
                 'message': "Please provide all required fields email, subcription_type, card_no, cvv, exp_month, exp_year"
@@ -120,7 +120,6 @@ def update_subcription():
     user_found_res = dynamodb.GetUserFromTable(email)
 
     if (user_found_res['ResponseMetadata']['HTTPStatusCode'] == 200):
-
         if 'Item' in user_found_res:
 
             card_found_res = dynamodb.GetCardFromTable(card_no)
@@ -152,6 +151,7 @@ def update_subcription():
                             'status': False,
                             'message': 'Card is invalid',
                             }
+
     return {
         'status': False,
         'message': 'Some errors occured',
@@ -159,7 +159,7 @@ def update_subcription():
 
 
 
-app.register_blueprint(bp, url_prefix='/api/v1/auth/')
+app.register_blueprint(bp, url_prefix='/api/v1/subscribe/')
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
