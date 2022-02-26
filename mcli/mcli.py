@@ -70,6 +70,25 @@ def parse_quoted_strings(arg):
     args = mre.findall(arg)
     return [''.join(a) for a in args]
 
+def view_song_info(url, info_type):
+    """
+    CLI option to view song info. 
+    """
+    song_id = utils.validate_song_id()
+    with open("local-storage.txt", "r") as file:
+        token = file.readline()
+    name, email = utils.decode_jwt(token)
+    payload = {
+        "email": email
+    }      
+    url = url+str(song_id)+"/"+info_type
+    r = requests.get(url,            
+        json=payload,
+        headers={
+            'Content-Type': 'application/json'
+        })
+    res = r.json()
+    print(f"*** {res['message']} ***")
 
 class Auth(cmd.Cmd):
     def __init__(self, args):
@@ -311,25 +330,15 @@ class Mcli(cmd.Cmd):
 
     def do_view_song_lyrics(self, arg):
         """
-        CLI option to view lyrics. 
-        To do - make this only available for subscribed users
+        CLI option to view lyrics.
         """
-        song_id = utils.validate_song_id()
-        url = get_music_url_hard(self.name, self.port2)
-        with open("local-storage.txt", "r") as file:
-            token = file.readline()
-        name, email = utils.decode_jwt(token)
-        payload = {
-            "email": email
-        }      
-        url = url+str(song_id)+"/lyrics"
-        r = requests.get(url,            
-            json=payload,
-            headers={
-                'Content-Type': 'application/json'
-            })
-        res = r.json()
-        print(f"*** {res['message']} ***")
+        view_song_info(get_music_url_hard(self.name,self.port2),'lyrics')
+
+    def do_find_artist(self, arg):
+        """
+        CLI option toview artist name
+        """
+        view_song_info(get_music_url_hard(self.name,self.port2),'artist')
 
     def do_logout(self, arg):
         """
