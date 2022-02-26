@@ -16,7 +16,9 @@ SERVICE = auth
 
 # ************ COMMANDS ************
 
-initialize-local: initialize-aws initialize-docker initialize-creds
+initialize-local-1: initialize-aws-1
+
+initialize-local-2: initialize-aws-2 initialize-creds initialize-docker
 
 run-local: run-docker
 
@@ -28,7 +30,9 @@ cleanup-local: cleanup-aws cleanup-creds cleanup-docker
 
 # ************ COMMANDS ************
 
-initialize-aws: create-stack upload-music create-table-user
+initialize-aws-1: create-stack
+
+initialize-aws-2:upload-music create-table-user
 
 cleanup-aws: empty-bucket delete-bucket delete-stack
 
@@ -52,6 +56,15 @@ create-table-user:
         AttributeName=email,AttributeType=S \
     --key-schema \
         AttributeName=email,KeyType=HASH \
+    --billing-mode PAY_PER_REQUEST
+
+create-table-cards:
+	aws dynamodb create-table \
+    --table-name Cards \
+    --attribute-definitions \
+        AttributeName=card_no,AttributeType=S \
+    --key-schema \
+        AttributeName=card_no,KeyType=HASH \
     --billing-mode PAY_PER_REQUEST
 
 # ************ CLEANUP COMMANDS ************

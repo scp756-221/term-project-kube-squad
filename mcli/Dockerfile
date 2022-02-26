@@ -9,8 +9,6 @@ COPY mcli.py ./
 
 COPY utils.py ./
 
-COPY local-storage.txt ./
-
 COPY .env ./
 
 CMD ["python", "mcli.py", "0.0.0.0", "3000", "5000"]
