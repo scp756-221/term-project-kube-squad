@@ -67,6 +67,19 @@ create-table-cards:
         AttributeName=card_no,KeyType=HASH \
     --billing-mode PAY_PER_REQUEST
 
+create-table-playlists:
+	aws dynamodb create-table \
+    --table-name playlist \
+    --attribute-definitions \
+        AttributeName=playlist_uuid,AttributeType=S \
+        AttributeName=playlist_name,AttributeType=S \
+    --key-schema \
+        AttributeName=playlist_uuid,KeyType=HASH \
+        AttributeName=playlist_name,KeyType=RANGE \
+    --billing-mode PAY_PER_REQUEST
+
+
+
 # ************ CLEANUP COMMANDS ************
 
 empty-bucket:
