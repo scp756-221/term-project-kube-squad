@@ -277,7 +277,7 @@ def add_to_playlist(playlist_name, url):
     if len(songNumbers) == 0:
         maxSongNumber = 0
     else:
-        maxSongNumber = max(songNumbers)
+        maxSongNumber = max(songNumbers) + 1
     done_message = add_song_by_song_id(playlist_name, song_list, url, maxSongNumber)
     print(done_message)
 
