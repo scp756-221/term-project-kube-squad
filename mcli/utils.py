@@ -194,11 +194,13 @@ def ask_to_edit_existing_playlist():
         ask_to_view_existing_playlist()
 
 def get_song_number(songNumbers, type="valid "):
-    print("\n")
     songNumber = input(f"Please enter {type}\"Song Number\" to remove it from the playlist or press Q to exit: ")
+    regex = '^[0-9]+$'
     if songNumber.lower() == 'q':
         return False
-    elif int(songNumber) not in songNumbers:
+    elif (not re.fullmatch(regex, songNumber)) and (int(songNumber) not in songNumbers):
+        print("\n")
+        print("Invalid input")
         songNumber = get_song_number(songNumbers)
     return songNumber
 
@@ -235,11 +237,56 @@ def delete_playlist_songs(playlist_name, url):
         return ''
 
 
+def show_music_list(url):
+    url = f"{url}getMusicList"
+
+    r = requests.get(
+        url,
+        headers={
+            'Content-Type': 'application/json'
+        }
+    )
+    res = r.json()
+    song_list = []
+    print("uuid track_name genre")
+    for _item in res['Items']:
+        uuid = _item['uuid']['S']
+        track_name = _item['track_name']['S']
+        genre = _item['genre']['S']
+
+        song_list.append({
+            "uuid": _item['uuid']['S'],
+            "artist_name": _item['artist_name']['S'],
+            "track_name": _item['track_name']['S'],
+            "release_date": _item['release_date']['S'],
+            "genre": _item['genre']['S'],
+            "lyrics": _item['lyrics']['S'],
+            "topic": _item['topic']['S']
+        })
+        print(f"{uuid} {track_name} {genre}")
+    return song_list
+
+def add_to_playlist(playlist_name, url):
+    # Printing the music list to the screen
+    song_list = show_music_list(url)
+
+    # Extracting the songs currently in the playlist
+    status, playList = view_playlist(playlist_name, url, False)
+
+    songNumbers = [song['orderNum'] for song in playList]
+    if len(songNumbers) == 0:
+        maxSongNumber = 0
+    else:
+        maxSongNumber = max(songNumbers)
+    done_message = add_song_by_song_id(playlist_name, song_list, url, maxSongNumber)
+    print(done_message)
+
+
 def edit_existing_playlist(playlist_name, url):
     while True:
         addTo, DeleteFrom = ask_to_addto_deletefrom_playlist()
         if addTo and not DeleteFrom:
-            print('Adding')
+            add_to_playlist(playlist_name, url)
         elif not addTo and DeleteFrom:
             status = delete_playlist_songs(playlist_name, url)
         else:
@@ -319,7 +366,7 @@ def view_playlist_names(url):
         print(res['message'])
         return False, []
 
-def view_playlist(playlistName, url):
+def view_playlist(playlistName, url, printPlayListSongs=True):
     f = open("local-storage.txt", "r")
     token = f.read()
     name, email = decode_jwt(str(token))
@@ -338,9 +385,10 @@ def view_playlist(playlistName, url):
     )
     res = r.json()
     if res['status']:
-        print('Playlist Songs:')
-        for song in res['item']['Items']:
-            print(f"Song Number: {song['orderNum']} - Song: {song['track_name']} - Artist: {song['artist_name']}")
+        if printPlayListSongs:
+            print('Playlist Songs:')
+            for song in res['item']['Items']:
+                print(f"Song Number: {song['orderNum']} - Song: {song['track_name']} - Artist: {song['artist_name']}")
         return True, res['item']['Items']
     else:
         print('Playlist Empty')

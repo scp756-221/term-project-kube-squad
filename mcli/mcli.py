@@ -228,7 +228,7 @@ class Mcli(cmd.Cmd):
             done_message = utils.add_song_by_song_id(playlist_name, song_list, url, orderNum)
 
         else:
-            print("You entered No - not creating a new plalist")
+            print("You entered No - not creating a new playlist")
             viewPlaylist = utils.ask_to_view_existing_playlist()
 
             if viewPlaylist:
@@ -238,11 +238,22 @@ class Mcli(cmd.Cmd):
 
                 # Keep going if we have at least one playlist
                 if res:
+
                     # Getting the playlist name
                     playlist_name = utils.validate_current_playlist_name(playlistNames, type='your')
+
+                    # Priting the playlist to terminal
                     getPlaylist, playlist = utils.view_playlist(playlist_name, url)
 
+                    # If there was an error, back out
+                    if not getPlaylist:
+                        print("\nError - exiting the playlist microservice ")
+                        return ''
+
+                    # Asking if use wants to edit playlist
                     is_yes_or_no = utils.ask_to_edit_existing_playlist()
+
+                    # If yes, continue
                     if is_yes_or_no:
                         utils.edit_existing_playlist(playlist_name, url)
                     else:
