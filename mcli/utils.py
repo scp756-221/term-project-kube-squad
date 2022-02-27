@@ -183,7 +183,6 @@ def ask_to_view_existing_playlist():
 
 
 def validate_playlist_name(type='your'):
-    print("*** Set Name ***")
     name = input(f"Please enter {type} playlist name: ")
     if name == '':
         print("\n")
@@ -203,8 +202,62 @@ def validate_song_id():
         id = validate_song_id()
     return id
 
+def view_playlist_names(url):
+    f = open("local-storage.txt", "r")
+    token = f.read()
+    name, email = decode_jwt(str(token))
+    payload = {}
+    payload['username'] = name
+    payload['email'] = email
 
-def add_song_by_song_id(playlist_name, song_list, url):
+    r = requests.post(
+        f"{url}view_playlist_names",
+        json=payload,
+        headers={
+            'Content-Type': 'application/json'
+        }
+    )
+    res = r.json()
+    if res['status']:
+        print('Your Current Playlists:')
+        for playlistName in res['item']:
+            print(f"- {playlistName}")
+
+        return True
+    else:
+        print(res['message'])
+        return False
+
+def view_playlist(playlistName, url):
+    f = open("local-storage.txt", "r")
+    token = f.read()
+    name, email = decode_jwt(str(token))
+
+    payload = {}
+    payload['username'] = name
+    payload['email'] = email
+    payload['playlistName'] = playlistName
+
+    r = requests.post(
+        f"{url}view_playlist",
+        json=payload,
+        headers={
+            'Content-Type': 'application/json'
+        }
+    )
+    res = r.json()
+    if res['status']:
+        print('Playlist Songs:')
+        for song in res['item']['Items']:
+            print(f"Song: {song['track_name']} - Artist: {song['artist_name']}")
+        return True
+    else:
+        print('Playlist Empty')
+        return False
+
+
+
+def add_song_by_song_id(playlist_name, song_list, url, orderNum=0):
     id = validate_song_id()
 
     if id == 'q':
@@ -224,6 +277,8 @@ def add_song_by_song_id(playlist_name, song_list, url):
         payload['username'] = name
         payload['email'] = email
         payload['playlist_name'] = playlist_name
+        payload['orderNum'] = orderNum
+
         # call api to add song to the playlist
         r = requests.post(
             f"{url}addToPlaylist",
@@ -232,10 +287,11 @@ def add_song_by_song_id(playlist_name, song_list, url):
                 'Content-Type': 'application/json'
             }
         )
+
         res = r.json()
         print(f"*** {res['message']} ***")    
 
         if id.lower() != 'q':
-            add_song_by_song_id(playlist_name, song_list, url)
+            add_song_by_song_id(playlist_name, song_list, url, orderNum+1)
         else:     
             return 'All songs added to playlist.'

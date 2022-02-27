@@ -14,7 +14,7 @@ SERVICE = auth
 
 # **************************************************************************** COMMANDS ****************************************************************************
 
-# ************ COMMANDS ************
+# ************ LOCAL COMMANDS ************
 
 initialize-local-1: initialize-aws-1
 
@@ -32,7 +32,7 @@ cleanup-local: cleanup-aws cleanup-creds cleanup-docker
 
 initialize-aws-1: create-stack
 
-initialize-aws-2:upload-music create-table-user
+initialize-aws-2:upload-music create-table-user create-table-cards create-table-playlists
 
 cleanup-aws: empty-bucket delete-bucket delete-stack
 
@@ -78,8 +78,6 @@ create-table-playlists:
         AttributeName=playlist_name,KeyType=RANGE \
     --billing-mode PAY_PER_REQUEST
 
-
-
 # ************ CLEANUP COMMANDS ************
 
 empty-bucket:
@@ -94,6 +92,11 @@ delete-stack:
 delete-table-user:
 	aws dynamodb delete-table --table-name User
 
+delete-table-playlist:
+	aws dynamodb delete-table --table-name playlist
+
+delete-table-cards:
+	aws dynamodb delete-table --table-name Cards
 # **************************************************************************** DOCKER COMMANDS ****************************************************************************
 
 # ************ COMMANDS ************
@@ -141,7 +144,7 @@ run-auth:
 	docker container run -d --net  music-service-net --rm -p $(AUTH_PORT):$(AUTH_PORT) --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
 
 run-playlist:
-	docker container run -d --net  music-service-net --rm -p $(PLAYLIST_PORT):$(PLAYLIST_PORT) --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
+	docker container run --net  music-service-net --rm -p $(PLAYLIST_PORT):$(PLAYLIST_PORT) --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
 
 run-subscription:
 	docker container run -d --net  music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subscription ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)

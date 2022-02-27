@@ -46,6 +46,45 @@ def get_music_list():
     res = dynamodb.get_music_list()
     return jsonify(res)
 
+@bp.route('/view_playlist_names', methods=['POST'])
+def view_playlist_names():
+    username = request.json.get('username', None)
+    email = request.json.get('email', None)
+
+    playListNames = dynamodb.get_playlist_names(username, email)
+
+    if len(playListNames) > 0:
+        return {
+            'status': True,
+            'message': 'Retrieved Playlists',
+            'item':list(playListNames)
+        }
+    else:
+        return {
+            'status': False,
+            'message': 'You Have No Playlists',
+        }
+
+@bp.route('/view_playlist', methods=['POST'])
+def view_playlist():
+    username = request.json.get('username', None)
+    email = request.json.get('email', None)
+    playlistName = request.json.get('playlistName', None)
+
+    playList = dynamodb.get_playlist(username, email, playlistName)
+
+    if len(playList) > 0:
+        return {
+            'status': True,
+            'message': 'Retrieved Playlists',
+            'item':playList
+        }
+    else:
+        return {
+            'status': False,
+            'message': 'You Have No Playlists',
+        }
+
 
 
 
@@ -62,7 +101,7 @@ def add_music_to_playlist():
     email = request.json.get('email', None)
     username = request.json.get('username', None)
     playlist_name = request.json.get('playlist_name', None)
-    
+    orderNum = request.json.get('orderNum', None)
 
 
     if not uuid or not artist_name or not track_name or not genre or not lyrics or not topic or not email or not username or not playlist_name:
@@ -80,7 +119,8 @@ def add_music_to_playlist():
         "topic" : topic ,
         "email": email,
         "name" : username,
-        "playlist_name": playlist_name
+        "playlist_name": playlist_name,
+        "orderNum": orderNum
     }
 
 
