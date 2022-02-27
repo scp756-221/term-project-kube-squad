@@ -65,6 +65,18 @@ def view_playlist_names():
             'message': 'You Have No Playlists',
         }
 
+@bp.route('/delete_song_from_playlist', methods=['POST'])
+def delete_song_from_playlist():
+    songsToDelete = request.json.get('songsToDelete', None)
+
+    for song in songsToDelete:
+        response = dynamodb.remove_song_from_playlist(song)
+        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+            return {'status': False, 'message': 'Failed to delete'}
+
+    return {'status': True, 'message': 'Deleted'}
+
+
 @bp.route('/view_playlist', methods=['POST'])
 def view_playlist():
     username = request.json.get('username', None)

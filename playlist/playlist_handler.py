@@ -150,6 +150,22 @@ def get_playlist(username, email, playlistName):
     return response
 
 
+def remove_song_from_playlist(song):
+    response = PlaylistTable.delete_item(
+        Key={
+            'playlist_uuid': song['playlist_uuid'],
+            'playlist_name': song['playlist_name']
+        },
+        ConditionExpression="orderNum = :val",
+        ExpressionAttributeValues={
+            ":val": song['orderNum']
+        }
+    )
+
+    return response
+
+
+
 
 # def addUserToUserTable(name, email, password):
 #     response = UserTable.put_item(

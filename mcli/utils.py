@@ -181,6 +181,85 @@ def ask_to_view_existing_playlist():
         print("Please enter valid input")
         ask_to_view_existing_playlist()
 
+def ask_to_edit_existing_playlist():
+    print("\n")
+    y_and_n = input("Enter Y to edit the playlist or N to exit playlist microservice\n[Y|N]:  ")
+
+    if y_and_n.lower() == 'y' or y_and_n.lower() == 'yes':
+        return True
+    elif y_and_n.lower() == 'n' or y_and_n.lower() == 'no':
+        return False
+    else:
+        print("Please enter valid input")
+        ask_to_view_existing_playlist()
+
+def get_song_number(songNumbers, type="valid "):
+    print("\n")
+    songNumber = input(f"Please enter {type}\"Song Number\" to remove it from the playlist or press Q to exit: ")
+    if songNumber.lower() == 'q':
+        return False
+    elif int(songNumber) not in songNumbers:
+        songNumber = get_song_number(songNumbers)
+    return songNumber
+
+def delete_playlist_songs(playlist_name, url):
+    status, playList = view_playlist(playlist_name, url)
+    if status:
+        songNumbers = [song['orderNum'] for song in playList]
+        songNumber = get_song_number(songNumbers, type="")
+
+        # If do not want to delete song from playlist
+        if not songNumber:
+            return False
+        else:
+            songsToDelete = [song for song in playList if song['orderNum'] == int(songNumber)]
+
+            payload = {'songsToDelete': songsToDelete}
+
+            r = requests.post(
+                f"{url}delete_song_from_playlist",
+                json=payload,
+                headers={
+                    'Content-Type': 'application/json'
+                }
+            )
+            # print(r.content)
+            res = r.json()
+            if res['status']:
+                print('Song removed from playlist')
+                delete_playlist_songs(playlist_name, url)
+            else:
+                print('Error')
+                return False
+    else:
+        return ''
+
+
+def edit_existing_playlist(playlist_name, url):
+    while True:
+        addTo, DeleteFrom = ask_to_addto_deletefrom_playlist()
+        if addTo and not DeleteFrom:
+            print('Adding')
+        elif not addTo and DeleteFrom:
+            status = delete_playlist_songs(playlist_name, url)
+        else:
+            print("\nYou entered N - exiting the playlist microservice ")
+            return ''
+
+def ask_to_addto_deletefrom_playlist():
+    print("\n")
+    y_and_n = input("Enter A to add songs, D to delete songs or N to exit playlist microservice\n[A|D|N]:  ")
+
+    if y_and_n.lower() == 'a':
+        return True, False
+    elif y_and_n.lower() == 'd':
+        return False, True
+    elif y_and_n.lower() == 'n' or y_and_n.lower() == 'no':
+        return False, False
+    else:
+        print("Please enter valid input")
+        ask_to_view_existing_playlist()
+
 
 def validate_playlist_name(type='your'):
     name = input(f"Please enter {type} playlist name: ")
@@ -188,6 +267,18 @@ def validate_playlist_name(type='your'):
         print("\n")
         print("Playlist name cannot be empty.")
         name = validate_name('valid')
+    return name
+
+def validate_current_playlist_name(playlists, type='your'):
+    name = input(f"Please enter {type} playlist name: ")
+    if name == '':
+        print("\n")
+        print("Playlist name cannot be empty.")
+        name = validate_name(playlists, 'valid')
+    elif name not in playlists:
+        print("\n")
+        print("Playlist name cannot not exist.")
+        name = validate_current_playlist_name(playlists, 'valid')
     return name
 
 def validate_song_id():
@@ -223,10 +314,10 @@ def view_playlist_names(url):
         for playlistName in res['item']:
             print(f"- {playlistName}")
 
-        return True
+        return True, res['item']
     else:
         print(res['message'])
-        return False
+        return False, []
 
 def view_playlist(playlistName, url):
     f = open("local-storage.txt", "r")
@@ -249,11 +340,11 @@ def view_playlist(playlistName, url):
     if res['status']:
         print('Playlist Songs:')
         for song in res['item']['Items']:
-            print(f"Song: {song['track_name']} - Artist: {song['artist_name']}")
-        return True
+            print(f"Song Number: {song['orderNum']} - Song: {song['track_name']} - Artist: {song['artist_name']}")
+        return True, res['item']['Items']
     else:
         print('Playlist Empty')
-        return False
+        return False, []
 
 
 

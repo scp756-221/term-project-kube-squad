@@ -226,7 +226,6 @@ class Mcli(cmd.Cmd):
             url = get_music_url_hard(self.name,self.port2)
             orderNum = 0
             done_message = utils.add_song_by_song_id(playlist_name, song_list, url, orderNum)
-            print(done_message)
 
         else:
             print("You entered No - not creating a new plalist")
@@ -235,13 +234,19 @@ class Mcli(cmd.Cmd):
             if viewPlaylist:
                 url = get_music_url_hard(self.name, self.port2)
 
-                res = utils.view_playlist_names(url)
+                res, playlistNames = utils.view_playlist_names(url)
 
                 # Keep going if we have at least one playlist
                 if res:
                     # Getting the playlist name
-                    playlist_name = utils.validate_playlist_name(type='your')
-                    getPlaylist = utils.view_playlist(playlist_name, url)
+                    playlist_name = utils.validate_current_playlist_name(playlistNames, type='your')
+                    getPlaylist, playlist = utils.view_playlist(playlist_name, url)
+
+                    is_yes_or_no = utils.ask_to_edit_existing_playlist()
+                    if is_yes_or_no:
+                        utils.edit_existing_playlist(playlist_name, url)
+                    else:
+                        print("\nYou entered N - exiting the playlist microservice ")
                 else:
                     print("\nPlease create a playlist first")
 
