@@ -69,16 +69,24 @@ Password will be encrypted before getting added to the table.
 ### Premium song info APIs
 
 1. Song Lyrics
+2. Artist name
+3. Genre
+4. Topic
+5. Release date
 
 ```bash
 Method type: GET
-http://127.0.0.1:5000/api/v1/music/<music_id>/lyrics
+http://127.0.0.1:5000/api/v1/music/<music_id>/<detail_type>
+
+Url parameters:
+<music_id> - must be a positive integer
+<detail_type> - one of 'lyrics','artist','genre','pop','release-date' (currently MCLI options use only 'lyrics' and 'artist')
 
 If user has an active subscription:
 Success response:
 
 {
-    "message": "song lyrics will be here"
+    "message": "song info here"
 }
 
 If song does not exist:

@@ -155,10 +155,11 @@ def checkUserIsSubscribed(email):
         else:
             return resp['Items'][0]['subscribe']
 
-def getSongLyrics(song_id):
+def getSongDetail(song_id, detail_key):
     try:
         resp = MusicTable.query(
-            KeyConditionExpression=Key('uuid').eq(song_id)
+            KeyConditionExpression=Key('uuid').eq(song_id),
+            ProjectionExpression=detail_key
         )
     except ClientError as e:
         print(e.response['Error']['Message'])
@@ -166,7 +167,7 @@ def getSongLyrics(song_id):
         if resp['Items'] == []:
             return ""
         else:    
-            return resp['Items'][0]['lyrics']
+            return resp['Items'][0][detail_key]
 
 # def addUserToUserTable(name, email, password):
 #     response = UserTable.put_item(
