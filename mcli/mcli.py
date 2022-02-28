@@ -183,7 +183,6 @@ class Mcli(cmd.Cmd):
         """
         """
         url = get_music_url_hard(self.name, self.port2)
-        print(url)
 
         url = f"{url}getMusicList"
         
@@ -225,16 +224,43 @@ class Mcli(cmd.Cmd):
             print("Select songs from below or press Q to end")
             song_list = self.show_music_list()
             url = get_music_url_hard(self.name,self.port2)
-            done_message = utils.add_song_by_song_id(playlist_name, song_list, url)
-            print(done_message)
+            orderNum = 0
+            done_message = utils.add_song_by_song_id(playlist_name, song_list, url, orderNum)
 
         else:
-            print("You entered No - not creating a new plalist")
-            is_yes_or_no = utils.ask_to_view_existing_playlist()
+            print("You entered No - not creating a new playlist")
+            viewPlaylist = utils.ask_to_view_existing_playlist()
 
-            if is_yes_or_no:
-                print("\nYou should now see the playlist here: ")
-                print("functionailty not added: ")
+            if viewPlaylist:
+                url = get_music_url_hard(self.name, self.port2)
+
+                res, playlistNames = utils.view_playlist_names(url)
+
+                # Keep going if we have at least one playlist
+                if res:
+
+                    # Getting the playlist name
+                    playlist_name = utils.validate_current_playlist_name(playlistNames, type='your')
+
+                    # Priting the playlist to terminal
+                    getPlaylist, playlist = utils.view_playlist(playlist_name, url)
+
+                    # If there was an error, back out
+                    if not getPlaylist:
+                        print("\nError - exiting the playlist microservice ")
+                        return ''
+
+                    # Asking if use wants to edit playlist
+                    is_yes_or_no = utils.ask_to_edit_existing_playlist()
+
+                    # If yes, continue
+                    if is_yes_or_no:
+                        utils.edit_existing_playlist(playlist_name, url)
+                    else:
+                        print("\nYou entered N - exiting the playlist microservice ")
+                else:
+                    print("\nPlease create a playlist first")
+
             else:
                 print("\nYou entered N - exiting the playlist microservice ")
 
