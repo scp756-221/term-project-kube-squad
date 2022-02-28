@@ -1,4 +1,4 @@
-.env
+../subcription/.env
 auth/__pycache__/*
 .idea/workspace.xml
 venv

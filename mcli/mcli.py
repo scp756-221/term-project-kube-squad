@@ -49,14 +49,19 @@ def get_auth_url(name, port):
     return "http://{}:{}/api/v1/auth/".format(name, port)
 
 def get_auth_url_hard(name, port):
-    return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
+    # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
+    return "http://auth:3000/api/v1/auth/".format(name, port)
 
+def get_subscription_url_hard():
+    # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
+    return "http://subscription:4000/api/v1/subscribe/"
 
 def get_music_url(name, port):
     return "http://{}:{}/api/v1/music/".format(name, port)    
 
 def get_music_url_hard(name, port):
-    return "http://0.0.0.0:5000/api/v1/music/"
+    # return "http://0.0.0.0:5000/api/v1/music/"
+    return "http://playlist:5000/api/v1/music/"
 
 
 def parse_quoted_strings(arg):
@@ -147,9 +152,9 @@ class Auth(cmd.Cmd):
         email = utils.validate_email()
         passw = utils.validate_pwd()
 
-
         # For test
         url = get_auth_url_hard(self.name, self.port)
+        
         payload = {
             'email': email,
             'password': passw,
@@ -199,7 +204,6 @@ class Mcli(cmd.Cmd):
         url = get_music_url_hard(self.name, self.port2)
 
         url = f"{url}getMusicList"
-
         
         r = requests.get(
             url,
@@ -207,7 +211,6 @@ class Mcli(cmd.Cmd):
                 'Content-Type': 'application/json'
             }
         )
-        
         res = r.json()
         song_list = []
         print("uuid track_name genre") 
@@ -240,16 +243,43 @@ class Mcli(cmd.Cmd):
             print("Select songs from below or press Q to end")
             song_list = self.show_music_list()
             url = get_music_url_hard(self.name,self.port2)
-            done_message = utils.add_song_by_song_id(playlist_name, song_list, url)
-            print(done_message)
+            orderNum = 0
+            done_message = utils.add_song_by_song_id(playlist_name, song_list, url, orderNum)
 
         else:
-            print("You entered No - not creating a new plalist")
-            is_yes_or_no = utils.ask_to_view_existing_playlist()
+            print("You entered No - not creating a new playlist")
+            viewPlaylist = utils.ask_to_view_existing_playlist()
 
-            if is_yes_or_no:
-                print("\nYou should now see the playlist here: ")
-                print("functionailty not added: ")
+            if viewPlaylist:
+                url = get_music_url_hard(self.name, self.port2)
+
+                res, playlistNames = utils.view_playlist_names(url)
+
+                # Keep going if we have at least one playlist
+                if res:
+
+                    # Getting the playlist name
+                    playlist_name = utils.validate_current_playlist_name(playlistNames, type='your')
+
+                    # Priting the playlist to terminal
+                    getPlaylist, playlist = utils.view_playlist(playlist_name, url)
+
+                    # If there was an error, back out
+                    if not getPlaylist:
+                        print("\nError - exiting the playlist microservice ")
+                        return ''
+
+                    # Asking if use wants to edit playlist
+                    is_yes_or_no = utils.ask_to_edit_existing_playlist()
+
+                    # If yes, continue
+                    if is_yes_or_no:
+                        utils.edit_existing_playlist(playlist_name, url)
+                    else:
+                        print("\nYou entered N - exiting the playlist microservice ")
+                else:
+                    print("\nPlease create a playlist first")
+
             else:
                 print("\nYou entered N - exiting the playlist microservice ")
 
@@ -270,11 +300,12 @@ class Mcli(cmd.Cmd):
 
         name, email = utils.decode_jwt(token)
 
-        url = get_auth_url(self.name, self.port2)
+        url = get_subscription_url_hard()
+
         payload = {
             "email": email,
-            "subcription": subcribe,
-            "subcription_type": sub_type,
+            "subscription": subcribe,
+            "subscription_type": sub_type,
             "card_no": card_no,
             "cvv": cvv,
             "exp_month": exp_month,
@@ -288,9 +319,9 @@ class Mcli(cmd.Cmd):
             }
         )
         res = r.json()
-        print(res)
+
         if res['status']:
-            print("*** Payment sucessfull and subcribed***")
+            print("*** Payment successful and subscribed***")
         else:
            print(f"*** {res['message']} ***")
 
@@ -308,7 +339,7 @@ class Mcli(cmd.Cmd):
 
         name, email = utils.decode_jwt(token)
 
-        url = get_auth_url(self.name, self.port2)
+        url = get_subscription_url_hard()
         payload = {
             "card_no": card_no,
             "cvv": cvv,

@@ -181,14 +181,151 @@ def ask_to_view_existing_playlist():
         print("Please enter valid input")
         ask_to_view_existing_playlist()
 
+def ask_to_edit_existing_playlist():
+    print("\n")
+    y_and_n = input("Enter Y to edit the playlist or N to exit playlist microservice\n[Y|N]:  ")
+
+    if y_and_n.lower() == 'y' or y_and_n.lower() == 'yes':
+        return True
+    elif y_and_n.lower() == 'n' or y_and_n.lower() == 'no':
+        return False
+    else:
+        print("Please enter valid input")
+        ask_to_view_existing_playlist()
+
+def get_song_number(songNumbers, type="valid "):
+    songNumber = input(f"Please enter {type}\"Song Number\" to remove it from the playlist or press Q to exit: ")
+    regex = '^[0-9]+$'
+    if songNumber.lower() == 'q':
+        return False
+    elif (not re.fullmatch(regex, songNumber)) and (int(songNumber) not in songNumbers):
+        print("\n")
+        print("Invalid input")
+        songNumber = get_song_number(songNumbers)
+    return songNumber
+
+def delete_playlist_songs(playlist_name, url):
+    status, playList = view_playlist(playlist_name, url)
+    if status:
+        songNumbers = [song['orderNum'] for song in playList]
+        songNumber = get_song_number(songNumbers, type="")
+
+        # If do not want to delete song from playlist
+        if not songNumber:
+            return False
+        else:
+            songsToDelete = [song for song in playList if song['orderNum'] == int(songNumber)]
+
+            payload = {'songsToDelete': songsToDelete}
+
+            r = requests.post(
+                f"{url}delete_song_from_playlist",
+                json=payload,
+                headers={
+                    'Content-Type': 'application/json'
+                }
+            )
+            # print(r.content)
+            res = r.json()
+            if res['status']:
+                print('Song removed from playlist')
+                delete_playlist_songs(playlist_name, url)
+            else:
+                print('Error')
+                return False
+    else:
+        return ''
+
+
+def show_music_list(url):
+    url = f"{url}getMusicList"
+
+    r = requests.get(
+        url,
+        headers={
+            'Content-Type': 'application/json'
+        }
+    )
+    res = r.json()
+    song_list = []
+    print("uuid track_name genre")
+    for _item in res['Items']:
+        uuid = _item['uuid']['S']
+        track_name = _item['track_name']['S']
+        genre = _item['genre']['S']
+
+        song_list.append({
+            "uuid": _item['uuid']['S'],
+            "artist_name": _item['artist_name']['S'],
+            "track_name": _item['track_name']['S'],
+            "release_date": _item['release_date']['S'],
+            "genre": _item['genre']['S'],
+            "lyrics": _item['lyrics']['S'],
+            "topic": _item['topic']['S']
+        })
+        print(f"{uuid} {track_name} {genre}")
+    return song_list
+
+def add_to_playlist(playlist_name, url):
+    # Printing the music list to the screen
+    song_list = show_music_list(url)
+
+    # Extracting the songs currently in the playlist
+    status, playList = view_playlist(playlist_name, url, False)
+
+    songNumbers = [song['orderNum'] for song in playList]
+    if len(songNumbers) == 0:
+        maxSongNumber = 0
+    else:
+        maxSongNumber = max(songNumbers) + 1
+    done_message = add_song_by_song_id(playlist_name, song_list, url, maxSongNumber)
+    print(done_message)
+
+
+def edit_existing_playlist(playlist_name, url):
+    while True:
+        addTo, DeleteFrom = ask_to_addto_deletefrom_playlist()
+        if addTo and not DeleteFrom:
+            add_to_playlist(playlist_name, url)
+        elif not addTo and DeleteFrom:
+            status = delete_playlist_songs(playlist_name, url)
+        else:
+            print("\nYou entered N - exiting the playlist microservice ")
+            return ''
+
+def ask_to_addto_deletefrom_playlist():
+    print("\n")
+    y_and_n = input("Enter A to add songs, D to delete songs or N to exit playlist microservice\n[A|D|N]:  ")
+
+    if y_and_n.lower() == 'a':
+        return True, False
+    elif y_and_n.lower() == 'd':
+        return False, True
+    elif y_and_n.lower() == 'n' or y_and_n.lower() == 'no':
+        return False, False
+    else:
+        print("Please enter valid input")
+        ask_to_view_existing_playlist()
+
 
 def validate_playlist_name(type='your'):
-    print("*** Set Name ***")
     name = input(f"Please enter {type} playlist name: ")
     if name == '':
         print("\n")
         print("Playlist name cannot be empty.")
         name = validate_name('valid')
+    return name
+
+def validate_current_playlist_name(playlists, type='your'):
+    name = input(f"Please enter {type} playlist name: ")
+    if name == '':
+        print("\n")
+        print("Playlist name cannot be empty.")
+        name = validate_name(playlists, 'valid')
+    elif name not in playlists:
+        print("\n")
+        print("Playlist name cannot not exist.")
+        name = validate_current_playlist_name(playlists, 'valid')
     return name
 
 def validate_song_id():
@@ -203,8 +340,63 @@ def validate_song_id():
         id = validate_song_id()
     return id
 
+def view_playlist_names(url):
+    f = open("local-storage.txt", "r")
+    token = f.read()
+    name, email = decode_jwt(str(token))
+    payload = {}
+    payload['username'] = name
+    payload['email'] = email
 
-def add_song_by_song_id(playlist_name, song_list, url):
+    r = requests.post(
+        f"{url}view_playlist_names",
+        json=payload,
+        headers={
+            'Content-Type': 'application/json'
+        }
+    )
+    res = r.json()
+    if res['status']:
+        print('Your Current Playlists:')
+        for playlistName in res['item']:
+            print(f"- {playlistName}")
+
+        return True, res['item']
+    else:
+        print(res['message'])
+        return False, []
+
+def view_playlist(playlistName, url, printPlayListSongs=True):
+    f = open("local-storage.txt", "r")
+    token = f.read()
+    name, email = decode_jwt(str(token))
+
+    payload = {}
+    payload['username'] = name
+    payload['email'] = email
+    payload['playlistName'] = playlistName
+
+    r = requests.post(
+        f"{url}view_playlist",
+        json=payload,
+        headers={
+            'Content-Type': 'application/json'
+        }
+    )
+    res = r.json()
+    if res['status']:
+        if printPlayListSongs:
+            print('Playlist Songs:')
+            for song in res['item']['Items']:
+                print(f"Song Number: {song['orderNum']} - Song: {song['track_name']} - Artist: {song['artist_name']}")
+        return True, res['item']['Items']
+    else:
+        print('Playlist Empty')
+        return False, []
+
+
+
+def add_song_by_song_id(playlist_name, song_list, url, orderNum=0):
     id = validate_song_id()
 
     if id == 'q':
@@ -224,6 +416,8 @@ def add_song_by_song_id(playlist_name, song_list, url):
         payload['username'] = name
         payload['email'] = email
         payload['playlist_name'] = playlist_name
+        payload['orderNum'] = orderNum
+
         # call api to add song to the playlist
         r = requests.post(
             f"{url}addToPlaylist",
@@ -232,10 +426,11 @@ def add_song_by_song_id(playlist_name, song_list, url):
                 'Content-Type': 'application/json'
             }
         )
+
         res = r.json()
         print(f"*** {res['message']} ***")    
 
         if id.lower() != 'q':
-            add_song_by_song_id(playlist_name, song_list, url)
+            add_song_by_song_id(playlist_name, song_list, url, orderNum+1)
         else:     
             return 'All songs added to playlist.'

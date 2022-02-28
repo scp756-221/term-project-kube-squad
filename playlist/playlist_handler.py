@@ -1,4 +1,7 @@
+import sys
+
 import boto3
+from boto3.dynamodb.conditions import Key, Attr
 
 # aws dynamodb create-table --cli-input-json file://create-table.json
 # aws dynamodb batch-write-item --request-items file://batch-write.json
@@ -128,9 +131,38 @@ def addMusicToPlayList(data):
             'playlist_name':data['playlist_name'],
             'email': data['email'],
             'name': data['name'],
-            'playlist_name': data['playlist_name']
+            'orderNum' : data['orderNum']
         }
     )
+    return response
+
+def get_playlist_names(userName, email):
+    response = PlaylistTable.scan(FilterExpression=Attr('name').eq(userName) & Attr('email').eq(email))
+
+    playlists = response['Items']
+    playlistNames = set()
+    for playlist in playlists:
+        playlistNames.add(playlist['playlist_name'])
+
+    return playlistNames
+
+def get_playlist(username, email, playlistName):
+    response = PlaylistTable.scan(FilterExpression=Attr('name').eq(username) & Attr('email').eq(email) & Attr('playlist_name').eq(playlistName))
+    return response
+
+
+def remove_song_from_playlist(song):
+    response = PlaylistTable.delete_item(
+        Key={
+            'playlist_uuid': song['playlist_uuid'],
+            'playlist_name': song['playlist_name']
+        },
+        ConditionExpression="orderNum = :val",
+        ExpressionAttributeValues={
+            ":val": song['orderNum']
+        }
+    )
+
     return response
 
 """
@@ -168,6 +200,7 @@ def getSongDetail(song_id, detail_key):
             return ""
         else:    
             return resp['Items'][0][detail_key]
+
 
 # def addUserToUserTable(name, email, password):
 #     response = UserTable.put_item(
