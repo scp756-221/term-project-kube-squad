@@ -12,6 +12,9 @@ SUBSCRIPTION_PORT = 4000
 SERVER=0.0.0.0
 SERVICE = auth
 
+
+
+
 # **************************************************************************** COMMANDS ****************************************************************************
 
 # ************ LOCAL COMMANDS ************
@@ -25,6 +28,36 @@ run-local: run-docker
 stop-local: stop-docker
 
 cleanup-local: cleanup-aws cleanup-creds cleanup-docker
+
+# **************************************************************************** KUBECTL COMMANDS ****************************************************************************
+
+get-contexts:
+	kubectl config get-contexts
+get-namespaces:
+	kubectl get namespace
+get-config:
+	kubectl config view
+
+set-context:
+	kubectl config use-context $(ctx) --namespace=$(ns)
+
+set-namespace:
+	kubectl config set-context --current --namespace=$(ns)
+
+create-namespace:
+	kubectl create ns music-service
+
+
+
+
+
+
+
+# **************************************************************************** MINIKUBE COMMANDS ****************************************************************************
+
+start-mk8s:
+	minikube start
+
 
 # **************************************************************************** AWS COMMANDS ****************************************************************************
 
@@ -121,7 +154,7 @@ list-containers-running:
 	docker ps
 
 # ************ IMAGE BUILDING ************
-build-docker: build-network build-auth build-playlist build-subcription build-mcli
+build-docker: build-network build-auth build-playlist build-subscription build-mcli
 
 build-network:
 	docker network create music-service-net
@@ -132,11 +165,31 @@ build-auth:
 build-playlist:
 	docker build $(ARCH) --file playlist/Dockerfile --tag ghcr.io/$(REGID)/playlist:$(APP_VER_TAG) playlist
 
-build-subcription:
-	docker build $(ARCH) --file subcription/Dockerfile --tag ghcr.io/$(REGID)/subcription:$(APP_VER_TAG) subcription
+build-subscription:
+	docker build $(ARCH) --file subcription/Dockerfile --tag ghcr.io/$(REGID)/subscription:$(APP_VER_TAG) subscription
 
 build-mcli:
 	docker build $(ARCH) --file mcli/Dockerfile --tag ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) mcli
+
+# ************ IMAGE PUSHING ************
+push-docker: registry-login push-auth push-playlist push-subscription push-mcli
+
+push-auth: registry-login
+	docker push ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
+
+push-playlist: registry-login
+	docker push ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
+
+push-subscription: registry-login
+	docker push ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)
+
+push-mcli: registry-login
+	docker push ghcr.io/$(REGID)/mcli:$(APP_VER_TAG)
+
+# ************ CONTAINER REGISTRY ************
+
+registry-login:
+	@/bin/sh -c 'cat ${CREG}-token.txt | docker login $(CREG) -u $(REGID) --password-stdin'
 
 # ************ CONTAINER RUNNING ************
 
@@ -147,7 +200,7 @@ run-playlist:
 	docker container run -d --net  music-service-net --rm -p $(PLAYLIST_PORT):$(PLAYLIST_PORT) --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
 
 run-subscription:
-	docker container run -d --net  music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subscription ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)
+	docker container run -d --net  music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subscription ghcr.io/$(REGID)/subscription:$(APP_VER_TAG)
 
 run-mcli:
 	docker container run -it --rm --net  music-service-net --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(AUTH_PORT) $(PLAYLIST_PORT) 
