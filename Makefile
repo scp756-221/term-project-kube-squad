@@ -166,7 +166,7 @@ build-playlist:
 	docker build $(ARCH) --file playlist/Dockerfile --tag ghcr.io/$(REGID)/playlist:$(APP_VER_TAG) playlist
 
 build-subscription:
-	docker build $(ARCH) --file subcription/Dockerfile --tag ghcr.io/$(REGID)/subscription:$(APP_VER_TAG) subscription
+	docker build $(ARCH) --file subscription/Dockerfile --tag ghcr.io/$(REGID)/subscription:$(APP_VER_TAG) subscription
 
 build-mcli:
 	docker build $(ARCH) --file mcli/Dockerfile --tag ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) mcli

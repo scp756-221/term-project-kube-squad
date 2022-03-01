@@ -91,12 +91,6 @@ class Auth(cmd.Cmd):
         email = utils.validate_email()
         passw, passw2 = utils.validate_pwd_and_c_pwd()
 
-        # For test
-        # print({
-        #     "name": name,
-        #     "email": email,
-        #     "password": passw,
-        # })
         url = get_auth_url_hard(self.name, self.port)
         payload = {
             "name": name,
@@ -114,17 +108,17 @@ class Auth(cmd.Cmd):
 
         print("\n")
         print(res['message'])
-
         if res['status']:
-            f = open("local-storage.txt", 'w+')
-            f.write(token)
-            f.close()
-            print("\n")
-            name, email = utils.decode_jwt(res['token'])
-            print("\n")
-            print(
-                f"Welcome {name}. Please run 'help' to see options related to music app.")
-            Mcli(args).cmdloop()
+            if 'token' in res:
+                token = res['token']
+                f = open("local-storage.txt", 'w+')
+                f.write(token)
+                f.close()
+                print("\n")
+                name, email = utils.decode_jwt(res['token'])
+                print("\n")
+                print(f"Welcome {name}. Please run 'help' to see options related to music app.")
+                Mcli(args).cmdloop()
         # print(r.json())
 
     def do_login(self, arg):
@@ -162,7 +156,6 @@ class Auth(cmd.Cmd):
                 print("\n")
                 print(f"Welcome {name}. Please run 'help' to see options related to music app.")
                 Mcli(args).cmdloop()
-        # print(res)
 
 
 
