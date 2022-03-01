@@ -367,9 +367,27 @@ class Mcli(cmd.Cmd):
 
     def do_find_artist(self, arg):
         """
-        CLI option toview artist name
+        CLI option to view artist name
         """
         view_song_info(get_music_url_hard(self.name,self.port2),'artist')
+
+    def do_view_song_genre(self, arg):
+        """
+        CLI option to view song genre
+        """
+        view_song_info(get_music_url_hard(self.name,self.port2),'genre')
+
+    def do_get_song_release_date(self, arg):
+        """
+        CLI option to get song release date
+        """
+        view_song_info(get_music_url_hard(self.name,self.port2),'release-date')
+
+    def do_find_song_topic(self, arg):
+        """
+        CLI option to find song topic
+        """
+        view_song_info(get_music_url_hard(self.name, self.port2),'topic')    
 
     def do_logout(self, arg):
         """

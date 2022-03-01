@@ -169,12 +169,16 @@ PREMIUM MUSIC SERVICES
 @handle_all_exceptions
 def get_music_detail(song_id, detail_type):
     response = {}
+    resp_code = 200
     if dynamodb.checkUserIsSubscribed(request.json.get('email', None)):    
         res = dynamodb.getSongDetail(song_id, song_detail_map[detail_type])
+        if res == "":
+            resp_code = 404
         response['message'] = res
     else:
+        resp_code = 403
         response['message'] = subscribe_req_msg
-    return jsonify(response)        
+    return jsonify(response), resp_code        
 
 app.register_blueprint(bp, url_prefix='/api/v1/music/')
 
