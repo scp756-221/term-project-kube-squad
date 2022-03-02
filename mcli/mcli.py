@@ -50,8 +50,8 @@ def get_auth_url(name, port):
 
 def get_auth_url_hard(name, port):
     # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
-    # return "http://auth:3000/api/v1/auth/".format(name, port)
-    return "http://127.0.0.1:3000/api/v1/auth/"
+    return "http://auth:3000/api/v1/auth/".format(name, port)
+    # return "http://127.0.0.1:3000/api/v1/auth/"
 
 def get_subscription_url_hard():
     # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
