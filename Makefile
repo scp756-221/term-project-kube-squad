@@ -29,14 +29,83 @@ stop-local: stop-docker
 
 cleanup-local: cleanup-aws cleanup-creds cleanup-docker
 
+# ************ MK8S COMMANDS ************
+
+initialize-mk8s-1: initialize-aws-1
+
+initialize-mk8s-2: initialize-aws-2 initialize-creds initialize-docker
+
+run-mk8s: rollout-mk8s
+
+stop-mk8s: delete-mk8s
+
+cleanup-mk8s: cleanup-aws cleanup-creds cleanup-docker
+
 # **************************************************************************** KUBECTL COMMANDS ****************************************************************************
+
+# ************ GET COMMANDS ************
 
 get-contexts:
 	kubectl config get-contexts
+
 get-namespaces:
 	kubectl get namespace
+
 get-config:
 	kubectl config view
+
+get-deployments:
+	kubectl get deployments
+
+get-clusters:
+	kubectl config get-clusters
+
+get-services:
+	kubectl get services
+
+get-pods:
+	kubectl get pods -o wide
+
+# ************ ROLLOUT COMMANDS ************
+
+rollout-mk8s: rollout-auth rollout-subscription rollout-playlist create-tunnel
+
+rollout-auth:
+	kubectl create -f k8s/auth.yaml
+
+rollout-subscription:
+	kubectl create -f k8s/subscription.yaml
+
+rollout-playlist:
+	kubectl create -f k8s/playlist.yaml
+
+# ************ DELETE COMMANDS ************
+
+delete-mk8s: delete-auth delete-subscription delete-playlist
+
+delete-auth:
+	kubectl delete -f k8s/auth.yaml
+
+delete-subscription:
+	kubectl delete -f k8s/subscription.yaml
+
+delete-playlist:
+	kubectl delete -f k8s/playlist.yaml
+
+# ************ TUNNEL COMMANDS ************
+
+create-tunnel:
+	minikube tunnel
+
+# ************ CREATE COMMANDS ************
+
+create-namespace:
+	kubectl create -f k8s/namespace.yaml
+
+create-tunnel:
+	minikube tunnel
+
+# ************ SET COMMANDS ************
 
 set-context:
 	kubectl config use-context $(ctx) --namespace=$(ns)
@@ -44,19 +113,16 @@ set-context:
 set-namespace:
 	kubectl config set-context --current --namespace=$(ns)
 
-create-namespace:
-	kubectl create ns music-service
-
-
-
-
-
-
-
-# **************************************************************************** MINIKUBE COMMANDS ****************************************************************************
+# ************ CLUSTER COMMANDS ************
 
 start-mk8s:
-	minikube start
+	minikube start --nodes 2
+
+stop-mk8s:
+	minikube stop
+
+delete-mk8s:
+	minikube delete
 
 
 # **************************************************************************** AWS COMMANDS ****************************************************************************
@@ -181,7 +247,7 @@ push-playlist: registry-login
 	docker push ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
 
 push-subscription: registry-login
-	docker push ghcr.io/$(REGID)/subcription:$(APP_VER_TAG)
+	docker push ghcr.io/$(REGID)/subscription:$(APP_VER_TAG)
 
 push-mcli: registry-login
 	docker push ghcr.io/$(REGID)/mcli:$(APP_VER_TAG)
@@ -194,16 +260,16 @@ registry-login:
 # ************ CONTAINER RUNNING ************
 
 run-auth:
-	docker container run -d --net  music-service-net --rm -p $(AUTH_PORT):$(AUTH_PORT) --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
+	docker container run -d --net music-service-net --rm -p $(AUTH_PORT):$(AUTH_PORT) --name auth ghcr.io/$(REGID)/auth:$(APP_VER_TAG)
 
 run-playlist:
-	docker container run -d --net  music-service-net --rm -p $(PLAYLIST_PORT):$(PLAYLIST_PORT) --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
+	docker container run -d --net music-service-net --rm -p $(PLAYLIST_PORT):$(PLAYLIST_PORT) --name playlist ghcr.io/$(REGID)/playlist:$(APP_VER_TAG)
 
 run-subscription:
-	docker container run -d --net  music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subscription ghcr.io/$(REGID)/subscription:$(APP_VER_TAG)
+	docker container run -d --net music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subscription ghcr.io/$(REGID)/subscription:$(APP_VER_TAG)
 
 run-mcli:
-	docker container run -it --rm --net  music-service-net --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(AUTH_PORT) $(PLAYLIST_PORT) 
+	docker container run -it --rm --net music-service-net --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(AUTH_PORT) $(PLAYLIST_PORT)
 
 # ************ CONTAINER STOPPING ************
 

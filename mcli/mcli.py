@@ -50,7 +50,8 @@ def get_auth_url(name, port):
 
 def get_auth_url_hard(name, port):
     # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
-    return "http://auth:3000/api/v1/auth/".format(name, port)
+    # return "http://auth:3000/api/v1/auth/".format(name, port)
+    return "http://127.0.0.1:3000/api/v1/auth/"
 
 def get_subscription_url_hard():
     # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
@@ -92,6 +93,7 @@ class Auth(cmd.Cmd):
         passw, passw2 = utils.validate_pwd_and_c_pwd()
 
         url = get_auth_url_hard(self.name, self.port)
+
         payload = {
             "name": name,
             "email": email,
@@ -129,11 +131,13 @@ class Auth(cmd.Cmd):
 
         # For test
         url = get_auth_url_hard(self.name, self.port)
-        
+
         payload = {
             'email': email,
             'password': passw,
         }
+        print(f"{url}login")
+        print(payload)
         r = requests.post(
             f"{url}login",
             json=payload,
