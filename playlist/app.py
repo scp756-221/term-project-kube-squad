@@ -32,6 +32,13 @@ metrics.info('app_info', 'User process')
 bp = Blueprint('app', __name__)
 
 subscribe_req_msg = "Please purchase a subscription to use this feature"
+song_detail_map = {
+    'lyrics': 'lyrics',
+    'artist': 'artist_name',
+    'genre': 'genre',
+    'release-date': 'release_date',
+    'topic': 'topic'
+}
 
 @bp.route('/cplaylist', methods=['GET'])
 def create_user_table():
@@ -158,16 +165,20 @@ PREMIUM MUSIC SERVICES
 5. Song Topic
 """
 
-@bp.route('<song_id>/lyrics', methods=['GET'])
+@bp.route('<song_id>/<detail_type>', methods=['GET'])
 @handle_all_exceptions
-def get_music_lyrics(song_id):
+def get_music_detail(song_id, detail_type):
     response = {}
+    resp_code = 200
     if dynamodb.checkUserIsSubscribed(request.json.get('email', None)):    
-        res = dynamodb.getSongLyrics(song_id)
+        res = dynamodb.getSongDetail(song_id, song_detail_map[detail_type])
+        if res == "":
+            resp_code = 404
         response['message'] = res
     else:
+        resp_code = 403
         response['message'] = subscribe_req_msg
-    return jsonify(response)        
+    return jsonify(response), resp_code        
 
 app.register_blueprint(bp, url_prefix='/api/v1/music/')
 
