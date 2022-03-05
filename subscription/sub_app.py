@@ -102,7 +102,7 @@ def update_subscription():
     if not subcribe:
         return {
                 'status': False,
-                'message': "Please provide all subcription field"
+                'message': "Please provide all subscription field"
             }
 
     # if subcribe != 1:
@@ -139,7 +139,7 @@ def update_subscription():
                         if (sub_done['ResponseMetadata']['HTTPStatusCode'] == 200):
                             return {
                                 'status': True,
-                                'message': 'Payment was succesfull and subcription updated successfully',
+                                'message': 'Payment was succesfull and subscription updated successfully',
                             }
                         else:
                             return {

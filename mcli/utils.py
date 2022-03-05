@@ -63,7 +63,7 @@ def decode_jwt(token=''):
 
 
 def validate_subcription(type='your'):
-    print("*** Press 1 for subcription or any other character to cancel ***")
+    print("*** Press 1 for subscription or any other character to cancel ***")
     subcription = input(f"Please enter {type} choice: ")
 
     if subcription == '':

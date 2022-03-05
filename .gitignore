@@ -4,3 +4,4 @@
 k8s.mak
 *.log
 .env
+ghcr.io-token.txt
