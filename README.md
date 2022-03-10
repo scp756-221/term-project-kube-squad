@@ -3,30 +3,18 @@
 Term Project repo
 
 
-- Port (Aidan)
 
-- Song Lyric (Rishab - Abhishek)
-	- Give a song - return lyrics
-		- info (num sales, record company, billboard charts, date,  and general info not included already in S2 service)
-		- where is it available (spotify, apple music etc)
-		- For all of these, have a single API call and invidiual calls for each
+Gatling - configure and create test suite - Karthik / Abishek (Starting After 11)
+    - register
+    - subcribe
 
+    - login
+    - create small playlist
+    - edit playlist
+    - get song info
 
-- Playlist (Aidan - Rishab)
-	- Self explanatory
+Add readmes to your own stuff
 
+Grafana / Prometheous as a dashboard for monitoring your system - Rishab (Start 15)
 
-- Subscription (Anant - Karthik)
-	- fake payment gateway (i.e. submit payment, just add a flag)
-
-
-- Authentication of user (Anant - Karthik)
-	- Every Anant just said
-
-
-(Aidan - Rishab - Abhishek)
-- Gatling - To test load
-- Promethesus as a metrics gathering tool for your system
-- Grafana as a dashboard for monitoring your system.
-
-Final Report (Aidan - Mix of everyone)
+Final Report / Milestone Report - Aidan (Start next day or t)
