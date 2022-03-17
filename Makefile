@@ -35,7 +35,7 @@ initialize-mk8s-1: initialize-aws-1
 
 initialize-mk8s-2: initialize-aws-2 initialize-creds initialize-docker
 
-run-mk8s: rollout-mk8s
+run-mk8s: start-mk8s rollout-mk8s
 
 stop-mk8s: delete-mk8s
 
@@ -116,7 +116,7 @@ set-namespace:
 # ************ CLUSTER COMMANDS ************
 
 start-mk8s:
-	minikube start --nodes 2
+	minikube start
 
 stop-mk8s:
 	minikube stop
@@ -133,7 +133,7 @@ initialize-aws-1: create-stack
 
 initialize-aws-2:upload-music create-table-user create-table-cards create-table-playlists
 
-cleanup-aws: empty-bucket delete-bucket delete-stack
+cleanup-aws: empty-bucket delete-bucket delete-stack delete-table-playlist delete-table-cards delete-table-user
 
 # ************ INITIALIZATION COMMANDS ************
 
@@ -315,7 +315,7 @@ initialize-.env:
 	cp .env auth
 	cp .env mcli
 	cp .env playlist
-	cp .env subcription
+	cp .env subscription
 
 # ************ CREDENTIAL REMOVAL ************
 
@@ -323,5 +323,5 @@ cleanup-.env:
 	rm auth/.env
 	rm mcli/.env
 	rm playlist/.env
-	rm subcription/.env
+	rm subscription/.env
 
