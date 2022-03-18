@@ -43,6 +43,26 @@ cleanup-mk8s: cleanup-aws cleanup-creds cleanup-docker
 
 # **************************************************************************** KUBECTL COMMANDS ****************************************************************************
 
+# ************ ISTIO COMMANDS ************
+
+label-namespace-istio:
+	kubectl label namespace default istio-injection=enabled
+
+install-istio:
+	istioctl install
+
+apply-gateway:
+	kubectl apply -f k8s/gateway.yaml
+
+apply-vs:
+	kubectl apply -f k8s/virtual_services.yaml
+
+delete-gateway:
+	kubectl delete -f k8s/gateway.yaml
+
+delete-vs:
+	kubectl delete -f k8s/virtual_service.yaml
+
 # ************ GET COMMANDS ************
 
 get-contexts:
@@ -65,6 +85,9 @@ get-services:
 
 get-pods:
 	kubectl get pods -o wide
+
+get-service-accounts:
+	kubectl get serviceAccounts
 
 # ************ ROLLOUT COMMANDS ************
 
@@ -93,11 +116,6 @@ delete-playlist:
 	kubectl delete -f k8s/playlist.yaml
 
 # ************ TUNNEL COMMANDS ************
-
-create-tunnel:
-	minikube tunnel
-
-# ************ CREATE COMMANDS ************
 
 create-namespace:
 	kubectl create -f k8s/namespace.yaml

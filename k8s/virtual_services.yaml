@@ -1,0 +1,31 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: playlist-vs
+spec:
+  hosts:
+  - 'playlist.host'
+  gateways:
+  - gateway
+  http:
+  - route:
+    - destination:
+        host: playlist-svc.default.svc.cluster.local
+        port:
+          number: 80
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: subscription-vs
+spec:
+  hosts:
+  - 'subscription.host'
+  gateways:
+  - gateway
+  http:
+  - route:
+    - destination:
+        host: subscription-svc.default.svc.cluster.local
+        port:
+          number: 80
