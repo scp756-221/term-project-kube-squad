@@ -10,6 +10,6 @@ COPY middleware.py ./
 COPY playlist_handler.py ./
 COPY .env ./
 
-EXPOSE 5000
+EXPOSE 6000
 
-CMD ["python", "app.py", "5000"]
+CMD ["python", "app.py", "6000"]
