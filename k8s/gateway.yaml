@@ -8,13 +8,7 @@ spec:
   servers:
   - port:
       number: 80
-      name: playlist
+      name: http
       protocol: HTTP
     hosts:
-      - 'playlist.host'
-  - port:
-      number: 80
-      name: subscription
-      protocol: HTTP
-    hosts:
-      - 'subscription.host'
+      - '*'

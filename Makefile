@@ -41,7 +41,7 @@ stop-mk8s: delete-mk8s
 
 cleanup-mk8s: cleanup-aws cleanup-creds cleanup-docker
 
-# **************************************************************************** KUBECTL COMMANDS ****************************************************************************
+# **************************************************************************** K8S COMMANDS ****************************************************************************
 
 # ************ ISTIO COMMANDS ************
 
@@ -49,7 +49,7 @@ label-namespace-istio:
 	kubectl label namespace default istio-injection=enabled
 
 install-istio:
-	istioctl install
+	istioctl install -y
 
 apply-gateway:
 	kubectl apply -f k8s/gateway.yaml
@@ -61,7 +61,7 @@ delete-gateway:
 	kubectl delete -f k8s/gateway.yaml
 
 delete-vs:
-	kubectl delete -f k8s/virtual_service.yaml
+	kubectl delete -f k8s/virtual_services.yaml
 
 # ************ GET COMMANDS ************
 
@@ -104,7 +104,7 @@ rollout-playlist:
 
 # ************ DELETE COMMANDS ************
 
-delete-mk8s: delete-auth delete-subscription delete-playlist
+delete-pods: delete-auth delete-subscription delete-playlist
 
 delete-auth:
 	kubectl delete -f k8s/auth.yaml
