@@ -11,13 +11,14 @@ AUTH_PORT = 3000
 SUBSCRIPTION_PORT = 4000
 SERVER=0.0.0.0
 SERVICE = auth
+ISTIO_PATH =~/Programs/istio-1.13.1/samples/addons
 
 
 
 
 # **************************************************************************** COMMANDS ****************************************************************************
 
-# ************ LOCAL COMMANDS ************
+# ************ LOCAL (DOCKER) DEPLOYMENT COMMANDS ************
 
 initialize-local-1: initialize-aws-1
 
@@ -29,13 +30,15 @@ stop-local: stop-docker
 
 cleanup-local: cleanup-aws cleanup-creds cleanup-docker
 
-# ************ MK8S COMMANDS ************
+# ************ MK8S DEPLOYMENT COMMANDS ************
 
 initialize-mk8s-1: initialize-aws-1
 
 initialize-mk8s-2: initialize-aws-2 initialize-creds initialize-docker
 
 run-mk8s: start-mk8s configure-istio rollout-mk8s
+
+analyze-mk8s: apply-grafana apply-prometheus apply-kiali
 
 stop-mk8s: delete-mk8s
 
@@ -65,7 +68,26 @@ delete-gateway:
 delete-vs:
 	kubectl delete -f k8s/virtual_services.yaml
 
+# ************ ADDON COMMANDS ************
+
+port-forward:
+	kubectl port-forward svc/$(service) -n istio-system $(port)
+
+# ************ ADDON COMMANDS ************
+
+apply-grafana:
+	kubectl apply -f $(ISTIO_PATH)/grafana.yaml
+
+apply-prometheus:
+	kubectl apply -f $(ISTIO_PATH)/prometheus.yaml
+
+apply-kiali:
+	kubectl apply -f $(ISTIO_PATH)/kiali.yaml
+
 # ************ GET COMMANDS ************
+
+get-istio-svcs:
+	kubectl get svc -n istio-system
 
 get-contexts:
 	kubectl config get-contexts

@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: playlist-deploy
-  labels:
-    app: playlist
+  name: playlist
+#  labels:
+#    app: playlist
 spec:
   selector:
     matchLabels:
@@ -15,7 +15,7 @@ spec:
         app: playlist
     spec:
       containers:
-        - name: playlist
+        - name: playlist-container
           image: ghcr.io/avickars/playlist:v1
           imagePullPolicy: Always
           ports:
