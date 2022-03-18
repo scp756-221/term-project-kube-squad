@@ -35,7 +35,7 @@ initialize-mk8s-1: initialize-aws-1
 
 initialize-mk8s-2: initialize-aws-2 initialize-creds initialize-docker
 
-run-mk8s: start-mk8s rollout-mk8s
+run-mk8s: start-mk8s configure-istio rollout-mk8s
 
 stop-mk8s: delete-mk8s
 
@@ -44,6 +44,8 @@ cleanup-mk8s: cleanup-aws cleanup-creds cleanup-docker
 # **************************************************************************** K8S COMMANDS ****************************************************************************
 
 # ************ ISTIO COMMANDS ************
+
+configure-istio: install-istio label-namespace-istio apply-gateway apply-vs
 
 label-namespace-istio:
 	kubectl label namespace default istio-injection=enabled
