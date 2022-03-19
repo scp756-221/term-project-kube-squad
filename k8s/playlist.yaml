@@ -1,22 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: playlist-deploy
-  labels:
-    type: restapi
+  name: playlist-svc
+#  labels:
+#    app: playlist
 spec:
   selector:
     matchLabels:
-      app: playlist
+      app: playlist-svc
   replicas: 1
   template:
     metadata:
-      name: playlist-tmpl
       labels:
-        app: playlist
+        app: playlist-svc
     spec:
       containers:
-        - name: playlist
+        - name: playlist-container
           image: ghcr.io/avickars/playlist:v1
           imagePullPolicy: Always
           ports:
@@ -28,11 +27,9 @@ kind: Service
 metadata:
   name: playlist-svc
 spec:
-  type: LoadBalancer
   selector:
-    app: playlist
+    app: playlist-svc
   ports:
-  - name: http
+  - port: 80
     protocol: "TCP"
-    port: 6000
-    targetPort: http
+    targetPort: 6000
