@@ -1,7 +1,7 @@
 package simulations
 
-import io.gatling.core.scenario.Simulation
 import io.gatling.core.Predef._
+import io.gatling.core.scenario.Simulation
 import io.gatling.http.Predef._
 
 
@@ -44,8 +44,6 @@ class AuthSimulations extends Simulation {
         .get("logout")
         .check(status is 200)
     )
-
-
   setUp(scn.inject(atOnceUsers(1000))).protocols(httpConf)
 
 }
