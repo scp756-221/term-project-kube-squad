@@ -1,12 +1,12 @@
 SHELL := /bin/bash
-REGID=avickars
+REGID=karthiksrinatha
 
 CREG=ghcr.io
 AWS_REGION=us-west-2
 ARCH=--platform x86_64
 APP_VER_TAG=v1
 
-PLAYLIST_PORT = 5000
+PLAYLIST_PORT = 6000
 AUTH_PORT = 3000
 SUBSCRIPTION_PORT = 4000
 SERVER=0.0.0.0
@@ -375,4 +375,3 @@ cleanup-.env:
 	rm mcli/.env
 	rm playlist/.env
 	rm subscription/.env
-

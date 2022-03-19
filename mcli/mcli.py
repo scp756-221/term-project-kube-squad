@@ -62,7 +62,7 @@ def get_music_url(name, port):
 
 def get_music_url_hard(name, port):
     # return "http://0.0.0.0:5000/api/v1/music/"
-    return "http://playlist:5000/api/v1/music/"
+    return "http://playlist:6000/api/v1/music/"
 
 def parse_quoted_strings(arg):
     """
