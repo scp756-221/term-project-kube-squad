@@ -1,0 +1,9 @@
+{
+  "email": "karthik@gmail.com",
+  "subscription": 1,
+  "subscription_type": 1,
+  "card_no" :"123456788",
+  "cvv": "123",
+  "exp_month": "02",
+  "exp_year": "2024"
+}
