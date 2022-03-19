@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: playlist
+  name: playlist-svc
 #  labels:
 #    app: playlist
 spec:
   selector:
     matchLabels:
-      app: playlist
+      app: playlist-svc
   replicas: 1
   template:
     metadata:
       labels:
-        app: playlist
+        app: playlist-svc
     spec:
       containers:
         - name: playlist-container
@@ -28,7 +28,7 @@ metadata:
   name: playlist-svc
 spec:
   selector:
-    app: playlist
+    app: playlist-svc
   ports:
   - port: 80
     protocol: "TCP"

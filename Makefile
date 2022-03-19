@@ -84,6 +84,15 @@ apply-prometheus:
 apply-kiali:
 	kubectl apply -f $(ISTIO_PATH)/kiali.yaml
 
+delete-grafana:
+	kubectl delete -f $(ISTIO_PATH)/grafana.yaml
+
+delete-prometheus:
+	kubectl delete -f $(ISTIO_PATH)/prometheus.yaml
+
+delete-kiali:
+	kubectl delete -f $(ISTIO_PATH)/kiali.yaml
+
 # ************ GET COMMANDS ************
 
 get-istio-svcs:
