@@ -4,7 +4,7 @@ Term Project repo
 
 
 
-Gatling - configure and create test suite - Karthik / Abishek (Starting After 11)
+Gatling - configure and create test suite - Karthik, Abishek and Anant(Starting After 11)
     - register
     - subcribe
 
