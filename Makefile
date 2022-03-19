@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-REGID=karthiksrinatha
+REGID=avickars
 
 CREG=ghcr.io
 AWS_REGION=us-west-2
