@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-REGID=karthiksrinatha
+REGID=avickars
 
 CREG=ghcr.io
 AWS_REGION=us-west-2
@@ -11,13 +11,14 @@ AUTH_PORT = 3000
 SUBSCRIPTION_PORT = 4000
 SERVER=0.0.0.0
 SERVICE = auth
+ISTIO_PATH =~/Programs/istio-1.13.1/samples/addons
 
 
 
 
 # **************************************************************************** COMMANDS ****************************************************************************
 
-# ************ LOCAL COMMANDS ************
+# ************ LOCAL (DOCKER) DEPLOYMENT COMMANDS ************
 
 initialize-local-1: initialize-aws-1
 
@@ -29,21 +30,73 @@ stop-local: stop-docker
 
 cleanup-local: cleanup-aws cleanup-creds cleanup-docker
 
-# ************ MK8S COMMANDS ************
+# ************ MK8S DEPLOYMENT COMMANDS ************
 
 initialize-mk8s-1: initialize-aws-1
 
 initialize-mk8s-2: initialize-aws-2 initialize-creds initialize-docker
 
-run-mk8s: start-mk8s rollout-mk8s
+run-mk8s: start-mk8s configure-istio rollout-mk8s
+
+analyze-mk8s: apply-grafana apply-prometheus apply-kiali
 
 stop-mk8s: delete-mk8s
 
 cleanup-mk8s: cleanup-aws cleanup-creds cleanup-docker
 
-# **************************************************************************** KUBECTL COMMANDS ****************************************************************************
+# **************************************************************************** K8S COMMANDS ****************************************************************************
+
+# ************ ISTIO COMMANDS ************
+
+configure-istio: install-istio label-namespace-istio apply-gateway apply-vs
+
+label-namespace-istio:
+	kubectl label namespace default istio-injection=enabled
+
+install-istio:
+	istioctl install -y
+
+apply-gateway:
+	kubectl apply -f k8s/gateway.yaml
+
+apply-vs:
+	kubectl apply -f k8s/virtual_services.yaml
+
+delete-gateway:
+	kubectl delete -f k8s/gateway.yaml
+
+delete-vs:
+	kubectl delete -f k8s/virtual_services.yaml
+
+# ************ ADDON COMMANDS ************
+
+port-forward:
+	kubectl port-forward svc/$(service) -n istio-system $(port)
+
+# ************ ADDON COMMANDS ************
+
+apply-grafana:
+	kubectl apply -f $(ISTIO_PATH)/grafana.yaml
+
+apply-prometheus:
+	kubectl apply -f $(ISTIO_PATH)/prometheus.yaml
+
+apply-kiali:
+	kubectl apply -f $(ISTIO_PATH)/kiali.yaml
+
+delete-grafana:
+	kubectl delete -f $(ISTIO_PATH)/grafana.yaml
+
+delete-prometheus:
+	kubectl delete -f $(ISTIO_PATH)/prometheus.yaml
+
+delete-kiali:
+	kubectl delete -f $(ISTIO_PATH)/kiali.yaml
 
 # ************ GET COMMANDS ************
+
+get-istio-svcs:
+	kubectl get svc -n istio-system
 
 get-contexts:
 	kubectl config get-contexts
@@ -66,6 +119,9 @@ get-services:
 get-pods:
 	kubectl get pods -o wide
 
+get-service-accounts:
+	kubectl get serviceAccounts
+
 # ************ ROLLOUT COMMANDS ************
 
 rollout-mk8s: rollout-auth rollout-subscription rollout-playlist create-tunnel
@@ -81,7 +137,7 @@ rollout-playlist:
 
 # ************ DELETE COMMANDS ************
 
-delete-mk8s: delete-auth delete-subscription delete-playlist
+delete-pods: delete-auth delete-subscription delete-playlist
 
 delete-auth:
 	kubectl delete -f k8s/auth.yaml
@@ -93,11 +149,6 @@ delete-playlist:
 	kubectl delete -f k8s/playlist.yaml
 
 # ************ TUNNEL COMMANDS ************
-
-create-tunnel:
-	minikube tunnel
-
-# ************ CREATE COMMANDS ************
 
 create-namespace:
 	kubectl create -f k8s/namespace.yaml

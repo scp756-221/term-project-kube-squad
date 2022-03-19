@@ -1,22 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: subscription-deploy
-  labels:
-    type: restapi
+  name: subscription-svc
+#  labels:
+#    app: subscription
 spec:
   selector:
     matchLabels:
-      app: subscription
+      app: subscription-svc
   replicas: 1
   template:
     metadata:
-      name: subscription-tmpl
       labels:
-        app: subscription
+        app: subscription-svc
     spec:
       containers:
-        - name: subscription
+        - name: subscription-container
           image: ghcr.io/avickars/subscription:v1
           imagePullPolicy: Always
           ports:
@@ -28,11 +27,9 @@ kind: Service
 metadata:
   name: subscription-svc
 spec:
-  type: LoadBalancer
   selector:
-    app: subscription
+    app: subscription-svc
   ports:
-  - name: http
+  - port: 80
     protocol: "TCP"
-    port: 4000
-    targetPort: http
+    targetPort: 4000
