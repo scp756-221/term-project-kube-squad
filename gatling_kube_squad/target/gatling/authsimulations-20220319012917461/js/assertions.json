@@ -1,0 +1,10 @@
+{
+  "simulation": "simulations.AuthSimulations",
+  "simulationId": "authsimulations",
+  "start": 1647653357461,
+  "description": "test app",
+  "scenarios": ["Add User Scenario"],
+  "assertions": [
+
+  ]
+}
