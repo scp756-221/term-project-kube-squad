@@ -9,14 +9,42 @@ APP_VER_TAG=v1
 PLAYLIST_PORT = 6000
 AUTH_PORT = 3000
 SUBSCRIPTION_PORT = 4000
-SERVER=0.0.0.0
-SERVICE = auth
-ISTIO_PATH =~/Programs/istio-1.13.1/samples/addons
+PORT = 80
+SERVER = localhost
+ISTIO_PATH = ~/Programs/istio-1.13.1/samples/addons
+
+DPL_TYPE = local
+
+CLUSTER_NAME=aws756
+EKS_CTX=aws756
+
+
+NGROUP=worker-nodes
+NTYPE=t3.medium
+REGION=us-west-2
+KVER=1.21
+
+LOG_DIR=logs
 
 
 
 
 # **************************************************************************** COMMANDS ****************************************************************************
+
+# ************ EKS DEPLOYMENT COMMANDS ************
+initialize-eks-1: initialize-aws-1
+
+initialize-eks-2: initialize-aws-2 initialize-creds initialize-docker
+
+run-eks: start-eks
+
+configure-eks: configure-istio rollout-eks
+
+analyze-eks: apply-grafana apply-prometheus apply-kiali
+
+stop-eks: delete-eks
+
+cleanup-eks: cleanup-aws cleanup-creds cleanup-docker
 
 # ************ LOCAL (DOCKER) DEPLOYMENT COMMANDS ************
 
@@ -45,6 +73,17 @@ stop-mk8s: delete-mk8s
 cleanup-mk8s: cleanup-aws cleanup-creds cleanup-docker
 
 # **************************************************************************** K8S COMMANDS ****************************************************************************
+
+# ************ EKS COMMANDS ************
+
+start-eks:
+	eksctl create cluster --name $(CLUSTER_NAME) --version $(KVER) --region $(REGION) --nodegroup-name $(NGROUP) --node-type $(NTYPE) --nodes 2 --nodes-min 2 --nodes-max 2 --managed | tee $(LOG_DIR)/eks-start.log
+
+delete-eks:
+	eksctl delete cluster --name $(CLUSTER_NAME) --region $(REGION) | tee $(LOG_DIR)/eks-stop.log
+
+#delete-eks:
+#	eksctl delete nodegroup --cluster=$(CLUSTER_NAME) --region $(REGION) --name=$(NGROUP) | tee $(LOG_DIR)/eks-down.log
 
 # ************ ISTIO COMMANDS ************
 
@@ -125,6 +164,8 @@ get-service-accounts:
 # ************ ROLLOUT COMMANDS ************
 
 rollout-mk8s: rollout-auth rollout-subscription rollout-playlist create-tunnel
+
+rollout-eks: rollout-auth rollout-subscription rollout-playlist
 
 rollout-auth:
 	kubectl create -f k8s/auth.yaml
@@ -320,7 +361,7 @@ run-subscription:
 	docker container run -d --net music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subscription ghcr.io/$(REGID)/subscription:$(APP_VER_TAG)
 
 run-mcli:
-	docker container run -it --rm --net music-service-net --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(AUTH_PORT) $(PLAYLIST_PORT)
+	docker container run -it --rm --net music-service-net --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(PORT) $(DPL_TYPEm)
 
 # ************ CONTAINER STOPPING ************
 
