@@ -361,7 +361,7 @@ run-subscription:
 	docker container run -d --net music-service-net --rm -p $(SUBSCRIPTION_PORT):$(SUBSCRIPTION_PORT) --name subscription ghcr.io/$(REGID)/subscription:$(APP_VER_TAG)
 
 run-mcli:
-	docker container run -it --rm --net music-service-net --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(PORT) $(DPL_TYPEm)
+	docker container run -it --rm --net music-service-net --name mcli ghcr.io/$(REGID)/mcli:$(APP_VER_TAG) python3 mcli.py $(SERVER) $(PORT) $(DPL_TYPE)
 
 # ************ CONTAINER STOPPING ************
 
