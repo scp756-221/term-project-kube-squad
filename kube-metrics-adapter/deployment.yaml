@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-metrics-adapter
+  namespace: kube-system
+  labels:
+    app: kube-metrics-adapter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-metrics-adapter
+  template:
+    metadata:
+      labels:
+        app: kube-metrics-adapter
+    spec:
+      serviceAccountName: custom-metrics-apiserver
+      containers:
+      - name: kube-metrics-adapter
+        image: quay.io/stefanprodan/kube-metrics-adapter:master-478c97d
+        args:
+        - --prometheus-server=http://prometheus.istio-system.svc.cluster.local:9090
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1024Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
