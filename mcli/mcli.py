@@ -108,8 +108,6 @@ class Auth(cmd.Cmd):
 
         url = get_auth_url(self.name, self.port, self.dpl_type)
 
-        print('************************', f"{url}register")
-
         payload = {
             "name": name,
             "email": email,
