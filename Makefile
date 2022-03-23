@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-REGID=test
+REGID=test2
 
 CREG=ghcr.io
 AWS_REGION=us-west-2
@@ -91,23 +91,62 @@ delete-eks:
 
 configure-istio: install-istio label-namespace-istio apply-gateway apply-vs
 
+apply-vs: apply-vs-auth apply-vs-playlist apply-vs-subscription
+
+apply-vs-fault: apply-vs-auth-fault apply-vs-playlist-fault apply-vs-subscription-fault
+
+delete-vs: delete-vs-auth delete-vs-playlist delete-vs-subscription
+
+# ------------------
+
 label-namespace-istio:
 	kubectl label namespace default istio-injection=enabled
+
+# ------------------
 
 install-istio:
 	istioctl install -y
 
+# ------------------
+
 apply-gateway:
 	kubectl apply -f k8s/gateway.yaml
-
-apply-vs:
-	kubectl apply -f k8s/virtual_services.yaml
 
 delete-gateway:
 	kubectl delete -f k8s/gateway.yaml
 
-delete-vs:
-	kubectl delete -f k8s/virtual_services.yaml
+# ------------------
+
+apply-vs-auth:
+	kubectl apply -f k8s/auth_vs.yaml
+
+apply-vs-playlist:
+	kubectl apply -f k8s/playlist_vs.yaml
+
+apply-vs-subscription:
+	kubectl apply -f k8s/subscription_vs.yaml
+
+# ------------------
+
+delete-vs-auth:
+	kubectl delete -f k8s/auth_vs.yaml
+
+delete-vs-playlist:
+	kubectl delete -f k8s/playlist_vs.yaml
+
+delete-vs-subscription:
+	kubectl delete -f k8s/subscription_vs.yaml
+
+# ------------------
+
+apply-vs-auth-fault:
+	kubectl apply -f k8s/auth_vs_fault.yaml
+
+apply-vs-playlist-fault:
+	kubectl apply -f k8s/playlist_vs_fault.yaml
+
+apply-vs-subscription-fault:
+	kubectl apply -f k8s/subscription_vs_fault.yaml
 
 # ************ ADDON COMMANDS ************
 
@@ -247,9 +286,9 @@ create-stack:
 	--template-body file://dynamo-db/CSVToDynamo.template \
 	--parameters ParameterKey=BucketName,ParameterValue=music-service-$(REGID) \
 		ParameterKey=DynamoDBTableName,ParameterValue=music \
-		ParameterKey=FileName,ParameterValue=music_100.csv
+		ParameterKey=FileName,ParameterValue=music_100.csv | tee $(LOG_DIR)/stack.log
 upload-music:
-	aws s3 cp dynamo-db/music_100.csv s3://music-service-$(REGID)/music_100.csv
+	aws s3 cp dynamo-db/music_100.csv s3://music-service-$(REGID)/music_100.csv | tee $(LOG_DIR)/s3.log
 
 create-table-user:
 	aws dynamodb create-table \
@@ -258,7 +297,7 @@ create-table-user:
         AttributeName=email,AttributeType=S \
     --key-schema \
         AttributeName=email,KeyType=HASH \
-    --billing-mode PAY_PER_REQUEST
+    --billing-mode PAY_PER_REQUEST | tee $(LOG_DIR)/dynamodb.log
 
 create-table-cards:
 	aws dynamodb create-table \
@@ -267,7 +306,7 @@ create-table-cards:
         AttributeName=card_no,AttributeType=S \
     --key-schema \
         AttributeName=card_no,KeyType=HASH \
-    --billing-mode PAY_PER_REQUEST
+    --billing-mode PAY_PER_REQUEST | tee $(LOG_DIR)/dynamodb.log
 
 create-table-playlists:
 	aws dynamodb create-table \
@@ -278,27 +317,27 @@ create-table-playlists:
     --key-schema \
         AttributeName=playlist_uuid,KeyType=HASH \
         AttributeName=playlist_name,KeyType=RANGE \
-    --billing-mode PAY_PER_REQUEST
+    --billing-mode PAY_PER_REQUEST | tee $(LOG_DIR)/dynamodb.log
 
 # ************ CLEANUP COMMANDS ************
 
 empty-bucket:
-	aws s3 rm s3://music-service-$(REGID) --recursive
+	aws s3 rm s3://music-service-$(REGID) --recursive | tee $(LOG_DIR)/s3.log
 
 delete-bucket:
-	aws s3 rb s3://music-service-$(REGID) --force
+	aws s3 rb s3://music-service-$(REGID) --force | tee $(LOG_DIR)/s3.log
 
 delete-stack:
-	aws cloudformation delete-stack --stack-name csv-to-dynamo-db
+	aws cloudformation delete-stack --stack-name csv-to-dynamo-db | tee $(LOG_DIR)/stack.log
 
 delete-table-user:
-	aws dynamodb delete-table --table-name User
+	aws dynamodb delete-table --table-name User | tee $(LOG_DIR)/dynamodb.log
 
 delete-table-playlist:
-	aws dynamodb delete-table --table-name playlist
+	aws dynamodb delete-table --table-name playlist | tee $(LOG_DIR)/dynamodb.log
 
 delete-table-cards:
-	aws dynamodb delete-table --table-name Cards
+	aws dynamodb delete-table --table-name Cards | tee $(LOG_DIR)/dynamodb.log
 # **************************************************************************** DOCKER COMMANDS ****************************************************************************
 
 # ************ COMMANDS ************
