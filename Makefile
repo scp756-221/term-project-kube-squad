@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-REGID=avickars
+REGID=test
 
 CREG=ghcr.io
 AWS_REGION=us-west-2
@@ -17,6 +17,8 @@ DPL_TYPE = local
 
 CLUSTER_NAME=aws756
 EKS_CTX=aws756
+
+MIN_NODES = 1
 
 
 NGROUP=worker-nodes
@@ -41,6 +43,9 @@ run-eks: start-eks
 configure-eks: configure-istio rollout-eks
 
 analyze-eks: apply-grafana apply-prometheus apply-kiali
+
+deploy-auto-scaler:
+	kubectl apply -f ./kube-metrics-adapter/
 
 stop-eks: delete-eks
 
@@ -81,9 +86,6 @@ start-eks:
 
 delete-eks:
 	eksctl delete cluster --name $(CLUSTER_NAME) --region $(REGION) | tee $(LOG_DIR)/eks-stop.log
-
-#delete-eks:
-#	eksctl delete nodegroup --cluster=$(CLUSTER_NAME) --region $(REGION) --name=$(NGROUP) | tee $(LOG_DIR)/eks-down.log
 
 # ************ ISTIO COMMANDS ************
 
@@ -170,6 +172,9 @@ rollout-eks: rollout-auth rollout-subscription rollout-playlist
 rollout-auth:
 	kubectl create -f k8s/auth.yaml
 
+update-auth:
+	kubectl apply -f k8s/auth.yaml
+
 rollout-subscription:
 	kubectl create -f k8s/subscription.yaml
 
@@ -188,6 +193,9 @@ delete-subscription:
 
 delete-playlist:
 	kubectl delete -f k8s/playlist.yaml
+
+delete-pod:
+	kubectl delete pods $(pod_name)
 
 # ************ TUNNEL COMMANDS ************
 
@@ -208,13 +216,16 @@ set-namespace:
 # ************ CLUSTER COMMANDS ************
 
 start-mk8s:
-	minikube start
+	minikube start --nodes 1
 
 stop-mk8s:
 	minikube stop
 
 delete-mk8s:
 	minikube delete
+
+get-mk8s-dashboard:
+	minikube dashboard
 
 
 # **************************************************************************** AWS COMMANDS ****************************************************************************
