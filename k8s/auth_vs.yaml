@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: httpbin-auth
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - gateway
+  http:
+    - name: "auth-route"
+      match:
+        - uri:
+            prefix: /api/v1/auth/
+      route:
+        - destination:
+            port:
+              number: 80
+            host: auth-svc.default.svc.cluster.local
