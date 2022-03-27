@@ -60,7 +60,7 @@ deploy-auto-scaler:
 	kubectl apply -f ./kube-metrics-adapter/
 
 ######## AMP - Grafana Starts ########
-initialize-AMP: create-AMP-Workspace create-AWSManagedPrometheusWriteAccessPolicy attach-EKS-AMP-ServiceAccount-Role approve-iam-oidc-provider
+initialize-AMP: create-AMP-Workspace create-EKS-AMP-ServiceAccount-Role create-AMP-Policies approve-iam-oidc-provider
 
 analyze-eks-AMP: deploy-prometheus-for-amp deploy-local-grafana upgrade-grafana-env forward-local-grafana-5001
 
@@ -70,7 +70,7 @@ get-grafana-login-pswd:
 get-AMP-prometheusEndpoint:
 	aws amp describe-workspace --workspace-id $(AMP_WORKSPACE_ID) --query "workspace.prometheusEndpoint" --output text
 
-cleanup-AMP-Grafana: stop-port-forwarding-5001 cleanup-prom-grafana-namepaces cleanup-AMP-Role 
+cleanup-AMP-Grafana: delete-AMP-Workspace cleanup-AMP-Role cleanup-prom-grafana-namepaces stop-port-forwarding-5001
 
 ######## AMP - Grafana Ends ########
 
@@ -85,6 +85,8 @@ cleanup-eks: cleanup-aws cleanup-creds cleanup-docker
 create-AMP-Workspace:
 	aws amp create-workspace --alias $(AMP_WORKSPACE_NAME) --region $(REGION)
 	echo $(SLEEP_10)
+
+create-AMP-Policies: create-AWSManagedPrometheusWriteAccessPolicy attach-EKS-AMP-ServiceAccount-Role
 
 # 1
 create-AWSManagedPrometheusWriteAccessPolicy:
@@ -117,6 +119,7 @@ deploy-local-grafana:
 # 6
 upgrade-grafana-env:
 	helm upgrade --install grafana-for-amp grafana/grafana -n grafana -f ./AMP-policies/amp_query_override_values.yaml
+	echo $(SLEEP_10)
 
 # 7
 # get-kubernetes-secret-pswd:
@@ -127,6 +130,13 @@ forward-local-grafana-5001:
 	kubectl port-forward -n grafana $(GRAFANA_POD_NAME) 5001:3000
 
 # cleanups:
+get-all-AMP-Workspaces:
+	aws amp list-workspaces --alias $(AMP_WORKSPACE_NAME)
+
+delete-AMP-Workspace:
+	aws amp delete-workspace --workspace-id $(AMP_WORKSPACE_ID)
+	echo $(SLEEP_10)
+
 cleanup-AMP-Role: detach-AWSManagedPrometheusWriteAccessPolicy delete-AWSManagedPrometheusWriteAccessPolicy delete-EKS-AMP-ServiceAccount-Role
 
 detach-AWSManagedPrometheusWriteAccessPolicy:
