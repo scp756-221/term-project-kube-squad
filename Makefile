@@ -1,5 +1,6 @@
 SHELL := /bin/bash
-REGID=test2
+REGID=rishabhkaushal07
+
 
 CREG=ghcr.io
 AWS_REGION=us-west-2
@@ -11,7 +12,7 @@ AUTH_PORT = 3000
 SUBSCRIPTION_PORT = 4000
 PORT = 80
 SERVER = localhost
-ISTIO_PATH = ~/Programs/istio-1.13.1/samples/addons
+ISTIO_PATH = /Users/rishabhkaushal/My_Apps/istio-1.13.2/samples/addons
 
 DPL_TYPE = local
 
@@ -28,8 +29,19 @@ KVER=1.21
 
 LOG_DIR=logs
 
+AMP_WORKSPACE_NAME=aws-prometheus-workspace
+AMP_WORKSPACE_ID = $(shell aws amp list-workspaces --alias aws-prometheus-workspace --query "workspaces[].[workspaceId]" --output text)
 
+OIDC_URL = $(shell aws eks describe-cluster --name aws756 --query "cluster.identity.oidc.issuer" --output text)
+ACCOUNT_ID = $(shell aws sts get-caller-identity --query "Account" --output text)
+SLEEP_10 = $(shell sleep 10)
+SLEEP_2 = $(shell sleep 2)
 
+GRAFANA_POD_NAME=$(shell kubectl get pods -n grafana --no-headers -o custom-columns=":metadata.name")
+
+# testing
+test-var:
+	echo $(SLEEP_2)
 
 # **************************************************************************** COMMANDS ****************************************************************************
 
@@ -47,9 +59,100 @@ analyze-eks: apply-grafana apply-prometheus apply-kiali
 deploy-auto-scaler:
 	kubectl apply -f ./kube-metrics-adapter/
 
+######## AMP - Grafana Starts ########
+initialize-AMP: create-AMP-Workspace create-AWSManagedPrometheusWriteAccessPolicy attach-EKS-AMP-ServiceAccount-Role approve-iam-oidc-provider
+
+analyze-eks-AMP: deploy-prometheus-for-amp deploy-local-grafana upgrade-grafana-env forward-local-grafana-5001
+
+get-grafana-login-pswd:
+	kubectl get secrets grafana-for-amp -n grafana -o jsonpath='{.data.admin-password}' | base64 --decode ; echo
+
+get-AMP-prometheusEndpoint:
+	aws amp describe-workspace --workspace-id $(AMP_WORKSPACE_ID) --query "workspace.prometheusEndpoint" --output text
+
+cleanup-AMP-Grafana: stop-port-forwarding-5001 cleanup-prom-grafana-namepaces cleanup-AMP-Role 
+
+######## AMP - Grafana Ends ########
+
 stop-eks: delete-eks
 
 cleanup-eks: cleanup-aws cleanup-creds cleanup-docker
+
+
+# **************************************************************************** AWS Prometheus - Grafana commands STARTS ****************************************************************************
+
+# 0
+create-AMP-Workspace:
+	aws amp create-workspace --alias $(AMP_WORKSPACE_NAME) --region $(REGION)
+	echo $(SLEEP_10)
+
+# 1
+create-AWSManagedPrometheusWriteAccessPolicy:
+	aws iam create-policy --policy-name "AWSManagedPrometheusWriteAccessPolicy" --policy-document file://./AMP-policies/AWSManagedPrometheusWriteAccessPolicy.json
+
+# 2
+create-EKS-AMP-ServiceAccount-Role:
+	aws iam create-role --role-name "EKS-AMP-ServiceAccount-Role" --assume-role-policy-document file://./AMP-policies/TrustPolicy.json --description "SERVICE ACCOUNT IAM ROLE DESCRIPTION" --query "Role.Arn" --output text
+
+# 3
+attach-EKS-AMP-ServiceAccount-Role:
+	aws iam attach-role-policy --role-name "EKS-AMP-ServiceAccount-Role" --policy-arn "arn:aws:iam::$(ACCOUNT_ID):policy/AWSManagedPrometheusWriteAccessPolicy"
+
+# 4.1
+approve-iam-oidc-provider:
+	eksctl utils associate-iam-oidc-provider --cluster $(CLUSTER_NAME) --approve
+
+# 4.2
+deploy-prometheus-for-amp:
+	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+	kubectl create ns prometheus-namespace
+	helm install prometheus-for-amp prometheus-community/prometheus -n prometheus-namespace -f ./AMP-policies/amp_ingest_override_values.yaml --set serviceAccounts.server.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::$(ACCOUNT_ID):role/EKS-AMP-ServiceAccount-Role" --set server.remoteWrite[0].url="https://aps-workspaces.$(REGION).amazonaws.com/workspaces/$(AMP_WORKSPACE_ID)/api/v1/remote_write" --set server.remoteWrite[0].sigv4.region=$(REGION)
+
+# 5
+deploy-local-grafana:
+	helm repo add grafana https://grafana.github.io/helm-charts
+	kubectl create ns grafana
+	helm install grafana-for-amp grafana/grafana -n grafana
+
+# 6
+upgrade-grafana-env:
+	helm upgrade --install grafana-for-amp grafana/grafana -n grafana -f ./AMP-policies/amp_query_override_values.yaml
+
+# 7
+# get-kubernetes-secret-pswd:
+# 	kubectl get secrets grafana-for-amp -n grafana -o jsonpath='{.data.admin-password}' | base64 --decode ; echo
+
+# 8
+forward-local-grafana-5001:
+	kubectl port-forward -n grafana $(GRAFANA_POD_NAME) 5001:3000
+
+# cleanups:
+cleanup-AMP-Role: detach-AWSManagedPrometheusWriteAccessPolicy delete-AWSManagedPrometheusWriteAccessPolicy delete-EKS-AMP-ServiceAccount-Role
+
+detach-AWSManagedPrometheusWriteAccessPolicy:
+	aws iam detach-role-policy --role-name EKS-AMP-ServiceAccount-Role --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/AWSManagedPrometheusWriteAccessPolicy
+
+delete-AWSManagedPrometheusWriteAccessPolicy:
+	aws iam delete-policy --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/AWSManagedPrometheusWriteAccessPolicy
+
+delete-EKS-AMP-ServiceAccount-Role:
+	aws iam delete-role --role-name "EKS-AMP-ServiceAccount-Role"
+
+cleanup-prom-grafana-namepaces: delete-AWS_Prometheus-namespace delete-local-grafana-namespace
+
+delete-AWS_Prometheus-namespace:
+	kubectl delete namespaces prometheus-namespace
+
+delete-local-grafana-namespace:
+	kubectl delete namespaces grafana
+
+stop-port-forwarding-5001: kill-grafana-for-amp-processes
+
+kill-grafana-for-amp-processes:
+	ps -ef | grep 'grafana-for-amp' | grep -v grep | awk '{print $2}' | xargs kill -9
+
+# **************************************************************************** AWS Prometheus - Grafana commands ENDS ****************************************************************************
+
 
 # ************ LOCAL (DOCKER) DEPLOYMENT COMMANDS ************
 
