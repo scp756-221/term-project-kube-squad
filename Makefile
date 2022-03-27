@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-REGID=rishabhkaushal07
+REGID=avickars
 
 
 CREG=ghcr.io
@@ -59,6 +59,10 @@ analyze-eks: apply-grafana apply-prometheus apply-kiali
 deploy-auto-scaler:
 	kubectl apply -f ./kube-metrics-adapter/
 
+stop-eks: delete-eks
+
+cleanup-eks: cleanup-aws cleanup-creds cleanup-docker
+
 ######## AMP - Grafana Starts ########
 initialize-AMP: create-AMP-Workspace create-AWSManagedPrometheusWriteAccessPolicy attach-EKS-AMP-ServiceAccount-Role approve-iam-oidc-provider
 
@@ -73,11 +77,6 @@ get-AMP-prometheusEndpoint:
 cleanup-AMP-Grafana: stop-port-forwarding-5001 cleanup-prom-grafana-namepaces cleanup-AMP-Role 
 
 ######## AMP - Grafana Ends ########
-
-stop-eks: delete-eks
-
-cleanup-eks: cleanup-aws cleanup-creds cleanup-docker
-
 
 # **************************************************************************** AWS Prometheus - Grafana commands STARTS ****************************************************************************
 
