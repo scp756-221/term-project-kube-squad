@@ -5,10 +5,10 @@ serviceAccounts:
         server:
             name: "amp-iamproxy-ingest-service-account"
             annotations:
-                eks.amazonaws.com/role-arn: "arn:aws:iam::455125577962:role/amp-iamproxy-ingest-role"
+                eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/amp-iamproxy-ingest-role"
 server:
     remoteWrite:
-        - url: https://aps-workspaces.us-west-2.amazonaws.com/workspaces/ws-7ca05887-0c5a-4569-866a-45db2dfd1548/api/v1/remote_write
+        - url: https://aps-workspaces.us-west-2.amazonaws.com/workspaces/ws-123445-abcd-1234-1234-123455asdbde/api/v1/remote_write
           sigv4:
             region: us-west-2
           queue_config:
