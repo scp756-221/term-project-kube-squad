@@ -108,6 +108,7 @@ deploy-prometheus-for-amp:
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 	kubectl create ns prometheus-namespace
 	helm install prometheus-for-amp prometheus-community/prometheus -n prometheus-namespace -f ./AMP-policies/amp_ingest_override_values.yaml --set serviceAccounts.server.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::$(ACCOUNT_ID):role/EKS-AMP-ServiceAccount-Role" --set server.remoteWrite[0].url="https://aps-workspaces.$(REGION).amazonaws.com/workspaces/$(AMP_WORKSPACE_ID)/api/v1/remote_write" --set server.remoteWrite[0].sigv4.region=$(REGION)
+	# helm upgrade prometheus-for-amp prometheus-community/prometheus -n prometheus-namespace -f ./AMP-policies/my_prometheus_values_yaml
 
 # 5
 deploy-local-grafana:
