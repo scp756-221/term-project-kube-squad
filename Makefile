@@ -64,7 +64,7 @@ stop-eks: delete-eks
 cleanup-eks: cleanup-aws cleanup-creds cleanup-docker
 
 ######## AMP - Grafana Starts ########
-initialize-AMP: create-AMP-Workspace create-EKS-AMP-ServiceAccount-Role create-AMP-Policies approve-iam-oidc-provider
+initialize-AMP: create-AMP-Workspace create-AMP-yaml-json create-EKS-AMP-ServiceAccount-Role create-AMP-Policies approve-iam-oidc-provider
 
 analyze-eks-AMP: deploy-prometheus-for-amp deploy-local-grafana upgrade-grafana-env forward-local-grafana-5001
 
@@ -74,7 +74,7 @@ get-grafana-login-pswd:
 get-AMP-prometheusEndpoint:
 	aws amp describe-workspace --workspace-id $(AMP_WORKSPACE_ID) --query "workspace.prometheusEndpoint" --output text
 
-cleanup-AMP-Grafana: delete-AMP-Workspace cleanup-AMP-Role cleanup-prom-grafana-namepaces stop-port-forwarding-5001
+cleanup-AMP-Grafana: clean-AMP-yaml-json delete-AMP-Workspace cleanup-AMP-Role cleanup-prom-grafana-namepaces stop-port-forwarding-5001
 
 ######## AMP - Grafana Ends ########
 
@@ -84,6 +84,9 @@ cleanup-AMP-Grafana: delete-AMP-Workspace cleanup-AMP-Role cleanup-prom-grafana-
 create-AMP-Workspace:
 	aws amp create-workspace --alias $(AMP_WORKSPACE_NAME) --region $(REGION)
 	echo $(SLEEP_10)
+
+create-AMP-yaml-json:
+	cd AMP-policies && bash create-AMP-yaml-json.sh $(CLUSTER_NAME) $(REGION) && cd ..
 
 create-AMP-Policies: create-AWSManagedPrometheusWriteAccessPolicy attach-EKS-AMP-ServiceAccount-Role
 
@@ -130,6 +133,9 @@ forward-local-grafana-5001:
 	kubectl port-forward -n grafana $(GRAFANA_POD_NAME) 5001:3000
 
 # cleanups:
+clean-AMP-yaml-json:
+	cd AMP-policies && bash clean-AMP-yaml-json.sh && cd ..
+
 get-all-AMP-Workspaces:
 	aws amp list-workspaces --alias $(AMP_WORKSPACE_NAME)
 

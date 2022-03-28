@@ -1,10 +1,10 @@
 #!/bin/bash -e
-CLUSTER_NAME=eks_cluster_name
-REGION=us-west-2
-AWS_ACCOUNT_ID=123456789012
-OIDC_PROVIDER=oidc.eks.us-west-2.amazonaws.com/id/B12345678ABCD123EB1234567891ABCD
-AMP_WORKSPACE_ID=ws-123445-abcd-1234-1234-123455asdbde
-AMP_ENDPOINT=https://aps-workspaces.us-west-2.amazonaws.com/workspaces/${AMP_WORKSPACE_ID}/
+CLUSTER_NAME=$1 # get cluster name from ../Makefile
+REGION=$2 # get aws region name from ../Makefile
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+OIDC_PROVIDER=$(aws eks describe-cluster --name $CLUSTER_NAME --query "cluster.identity.oidc.issuer" --output text | sed -e "s/^https:\/\///")
+AMP_WORKSPACE_ID=$(aws amp list-workspaces --alias aws-prometheus-workspace --query "workspaces[].[workspaceId]" --output text)
+AMP_ENDPOINT=$(aws amp describe-workspace --workspace-id $AMP_WORKSPACE_ID --query "workspace.prometheusEndpoint" --output text)
 
 
 #
