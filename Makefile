@@ -66,7 +66,10 @@ cleanup-eks: cleanup-aws cleanup-creds cleanup-docker
 ######## AMP - Grafana Starts ########
 initialize-AMP: create-AMP-Workspace create-AMP-yaml-json create-EKS-AMP-ServiceAccount-Role create-AMP-Policies approve-iam-oidc-provider
 
-analyze-eks-AMP: deploy-prometheus-for-amp deploy-local-grafana upgrade-grafana-env forward-local-grafana-5001
+analyze-eks-AMP: deploy-prometheus-for-amp deploy-local-grafana upgrade-grafana-env
+
+forward-local-grafana-5001:
+	kubectl port-forward -n grafana $(GRAFANA_POD_NAME) 5001:3000
 
 get-grafana-login-pswd:
 	kubectl get secrets grafana-for-amp -n grafana -o jsonpath='{.data.admin-password}' | base64 --decode ; echo
@@ -74,7 +77,9 @@ get-grafana-login-pswd:
 get-AMP-prometheusEndpoint:
 	aws amp describe-workspace --workspace-id $(AMP_WORKSPACE_ID) --query "workspace.prometheusEndpoint" --output text
 
-cleanup-AMP-Grafana: clean-AMP-yaml-json delete-AMP-Workspace cleanup-AMP-Role cleanup-prom-grafana-namepaces stop-port-forwarding-5001
+cleanup-AMP-Grafana: clean-AMP-yaml-json delete-AMP-Workspace cleanup-AMP-Role cleanup-prom-grafana-namepaces
+
+stop-port-forwarding-5001: kill-grafana-for-amp-processes
 
 ######## AMP - Grafana Ends ########
 
@@ -129,8 +134,8 @@ upgrade-grafana-env:
 # 	kubectl get secrets grafana-for-amp -n grafana -o jsonpath='{.data.admin-password}' | base64 --decode ; echo
 
 # 8
-forward-local-grafana-5001:
-	kubectl port-forward -n grafana $(GRAFANA_POD_NAME) 5001:3000
+# forward-local-grafana-5001:
+# 	kubectl port-forward -n grafana $(GRAFANA_POD_NAME) 5001:3000
 
 # cleanups:
 clean-AMP-yaml-json:
@@ -161,8 +166,6 @@ delete-AWS_Prometheus-namespace:
 
 delete-local-grafana-namespace:
 	kubectl delete namespaces grafana
-
-stop-port-forwarding-5001: kill-grafana-for-amp-processes
 
 kill-grafana-for-amp-processes:
 	ps -ef | grep 'grafana-for-amp' | grep -v grep | awk '{print $2}' | xargs kill -9
