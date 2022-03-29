@@ -39,6 +39,8 @@ SLEEP_2 = $(shell sleep 2)
 
 GRAFANA_POD_NAME=$(shell kubectl get pods -n grafana --no-headers -o custom-columns=":metadata.name")
 
+IAM_USER = $(shell aws iam get-user --query "User.[UserName]" --output text)
+
 # testing
 test-var:
 	echo $(SLEEP_2)
@@ -137,6 +139,24 @@ upgrade-grafana-env:
 # forward-local-grafana-5001:
 # 	kubectl port-forward -n grafana $(GRAFANA_POD_NAME) 5001:3000
 
+create-CloudWatch-XRay: create-CloudWatch-Policy attach-CloudWatch-Policy create-XRay-Policy attach-XRay-Policy
+
+# Create AWS CloudWatch policy
+create-CloudWatch-Policy:
+	aws iam create-policy --policy-name "CloudWatchLogsMetricsPolicy" --policy-document file://./AMP-policies/CloudWatchLogsMetricsPolicy.json
+
+# Attach AWS CloudWatch policy to IAM user
+attach-CloudWatch-Policy:
+	aws iam attach-user-policy --user-name $(IAM_USER) --policy-arn "arn:aws:iam::$(ACCOUNT_ID):policy/CloudWatchLogsMetricsPolicy"
+
+# Create AWS XRay policy
+create-XRay-Policy:
+	aws iam create-policy --policy-name "XRayGrafanaPolicy" --policy-document file://./AMP-policies/XRayGrafanaPolicy.json
+
+# Attach AWS XRay policy to IAM user
+attach-XRay-Policy:
+	aws iam attach-user-policy --user-name $(IAM_USER) --policy-arn "arn:aws:iam::$(ACCOUNT_ID):policy/XRayGrafanaPolicy"
+
 # cleanups:
 clean-AMP-yaml-json:
 	cd AMP-policies && bash clean-AMP-yaml-json.sh && cd ..
@@ -155,6 +175,20 @@ detach-AWSManagedPrometheusWriteAccessPolicy:
 
 delete-AWSManagedPrometheusWriteAccessPolicy:
 	aws iam delete-policy --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/AWSManagedPrometheusWriteAccessPolicy
+
+delete-CloudWatch-XRay: detach-CloudWatch-Policy delete-CloudWatch-Policy detach-XRay-Policy delete-XRay-Policy
+
+detach-CloudWatch-Policy:
+	aws iam detach-user-policy --user-name $(IAM_USER) --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/CloudWatchLogsMetricsPolicy
+
+delete-CloudWatch-Policy:
+	aws iam delete-policy --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/CloudWatchLogsMetricsPolicy
+
+detach-XRay-Policy:
+	aws iam detach-user-policy --user-name $(IAM_USER) --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/XRayGrafanaPolicy
+	
+delete-XRay-Policy:
+	aws iam delete-policy --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/XRayGrafanaPolicy
 
 delete-EKS-AMP-ServiceAccount-Role:
 	aws iam delete-role --role-name "EKS-AMP-ServiceAccount-Role"
