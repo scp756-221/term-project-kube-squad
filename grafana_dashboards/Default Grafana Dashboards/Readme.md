@@ -9,3 +9,16 @@ kubernetes-kubelet_rev1.json - Dashboard Id: 12123
 
 1-kubernetes-deployment-statefulset-daemonset-metrics_rev1.json - Dashboard Id: 8588
     https://grafana.com/grafana/dashboards/8588
+
+kubernetes-cluster_rev1.json - Dashboard Id: 7249
+    https://grafana.com/grafana/dashboards/7249
+
+aws-elb-classic-load-balancer_rev4.json - Default Dashboard Id: 644
+    https://grafana.com/grafana/dashboards/644
+
+aws-billing_rev16.json - Default Dashboard Id: 139
+    https://grafana.com/grafana/dashboards/139
+
+aws-elb-application-load-balancer_rev8.json - Default Dashboard Id: 650
+    https://grafana.com/grafana/dashboards/650
+

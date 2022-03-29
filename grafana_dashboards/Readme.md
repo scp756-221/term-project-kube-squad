@@ -16,3 +16,25 @@ kubernetes-kubelet_rev1.json - Dashboard Id: 12123
     Shorten URL for modified dashboard: http://localhost:3000/goto/YkPOcOs7k?orgId=1
     Default Dashboard Id: 8588
     Download URL for default dashboard: https://grafana.com/grafana/dashboards/8588
+
+
+kubernetes-cluster_rev1.json
+    Default Dashboard Id: 7249
+    Download URL for default dashboard: https://grafana.com/grafana/dashboards/7249
+
+
+aws-elb-classic-load-balancer_rev4.json
+    Default Dashboard Id: 644
+    Download URL for default dashboard: https://grafana.com/grafana/dashboards/644
+
+
+
+aws-billing_rev16.json
+    Default Dashboard Id: 139
+    Download URL for default dashboard: https://grafana.com/grafana/dashboards/139
+
+
+aws-elb-application-load-balancer_rev8.json
+    Default Dashboard Id: 650
+    Download URL for default dashboard: https://grafana.com/grafana/dashboards/650
+
