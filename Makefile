@@ -62,9 +62,10 @@ deploy-auto-scaler:
 	kubectl apply -f ./kube-metrics-adapter/
 
 ######## AMP - Grafana Starts ########
-initialize-AMP: create-AMP-Workspace create-AMP-yaml-json create-EKS-AMP-ServiceAccount-Role create-AMP-Policies approve-iam-oidc-provider
 
-analyze-eks-AMP: deploy-prometheus-for-amp deploy-local-grafana upgrade-grafana-env
+initialize-DataSources-Grafana: initialize-AMP create-CloudWatch-XRay
+
+analyze-eks-grafana: deploy-prometheus-for-amp deploy-local-grafana upgrade-grafana-env
 
 forward-local-grafana-5001:
 	kubectl port-forward -n grafana $(GRAFANA_POD_NAME) 5001:3000
@@ -75,7 +76,7 @@ get-grafana-login-pswd:
 get-AMP-prometheusEndpoint:
 	aws amp describe-workspace --workspace-id $(AMP_WORKSPACE_ID) --query "workspace.prometheusEndpoint" --output text
 
-cleanup-AMP-Grafana: clean-AMP-yaml-json delete-AMP-Workspace cleanup-AMP-Role cleanup-prom-grafana-namepaces
+cleanup-DataSources-Grafana: cleanup-AMP-Grafana delete-CloudWatch-XRay
 
 stop-port-forwarding-5001: kill-grafana-for-amp-processes
 
@@ -87,6 +88,8 @@ cleanup-eks: cleanup-aws cleanup-creds cleanup-docker
 
 
 # **************************************************************************** AWS Prometheus - Grafana commands STARTS ****************************************************************************
+
+initialize-AMP: create-AMP-Workspace create-AMP-yaml-json create-EKS-AMP-ServiceAccount-Role create-AMP-Policies approve-iam-oidc-provider
 
 # 0
 create-AMP-Workspace:
@@ -159,6 +162,8 @@ attach-XRay-Policy:
 	aws iam attach-user-policy --user-name $(IAM_USER) --policy-arn "arn:aws:iam::$(ACCOUNT_ID):policy/XRayGrafanaPolicy"
 
 # cleanups:
+cleanup-AMP-Grafana: clean-AMP-yaml-json delete-AMP-Workspace cleanup-AMP-Role cleanup-prom-grafana-namepaces
+
 clean-AMP-yaml-json:
 	cd AMP-policies && bash clean-AMP-yaml-json.sh && cd ..
 
