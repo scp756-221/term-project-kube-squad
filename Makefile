@@ -148,15 +148,15 @@ create-CloudWatch-Policy:
 
 # Attach AWS CloudWatch policy to IAM user
 attach-CloudWatch-Policy:
-	aws iam attach-user-policy --policy-arn arn:aws:iam:$(ACCOUNT_ID):aws:policy/CloudWatchLogsMetricsPolicy --user-name $(IAM_USER)
+	aws iam attach-user-policy --user-name $(IAM_USER) --policy-arn "arn:aws:iam::$(ACCOUNT_ID):policy/CloudWatchLogsMetricsPolicy"
 
 # Create AWS XRay policy
 create-XRay-Policy:
-	aws iam create-policy --policy-name "CloudWatchLogsMetricsPolicy" --policy-document file://./AMP-policies/XRayGrafanaPolicy.json
+	aws iam create-policy --policy-name "XRayGrafanaPolicy" --policy-document file://./AMP-policies/XRayGrafanaPolicy.json
 
 # Attach AWS XRay policy to IAM user
 attach-XRay-Policy:
-	aws iam attach-user-policy --policy-arn arn:aws:iam:$(ACCOUNT_ID):aws:policy/XRayGrafanaPolicy --user-name $(IAM_USER)
+	aws iam attach-user-policy --user-name $(IAM_USER) --policy-arn "arn:aws:iam::$(ACCOUNT_ID):policy/XRayGrafanaPolicy"
 
 # cleanups:
 clean-AMP-yaml-json:
