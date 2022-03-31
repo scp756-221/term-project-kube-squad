@@ -1,6 +1,6 @@
 SHELL := /bin/bash
-REGID=avickars
-
+#REGID=avickars
+REGID=test20
 
 CREG=ghcr.io
 AWS_REGION=us-west-2
@@ -12,7 +12,6 @@ AUTH_PORT = 3000
 SUBSCRIPTION_PORT = 4000
 PORT = 80
 SERVER = localhost
-ISTIO_PATH = /Users/rishabhkaushal/My_Apps/istio-1.13.2/samples/addons
 
 DPL_TYPE = local
 
@@ -29,28 +28,17 @@ KVER=1.21
 
 LOG_DIR=logs
 
-AMP_WORKSPACE_NAME=aws-prometheus-workspace
-AMP_WORKSPACE_ID = $(shell aws amp list-workspaces --alias aws-prometheus-workspace --query "workspaces[].[workspaceId]" --output text)
-
-OIDC_URL = $(shell aws eks describe-cluster --name aws756 --query "cluster.identity.oidc.issuer" --output text)
-ACCOUNT_ID = $(shell aws sts get-caller-identity --query "Account" --output text)
-SLEEP_10 = $(shell sleep 10)
-SLEEP_2 = $(shell sleep 2)
-
-GRAFANA_POD_NAME=$(shell kubectl get pods -n grafana --no-headers -o custom-columns=":metadata.name")
-
-IAM_USER = $(shell aws iam get-user --query "User.[UserName]" --output text)
-
-# testing
-test-var:
-	echo $(SLEEP_2)
-
 # **************************************************************************** COMMANDS ****************************************************************************
 
 # ************ EKS DEPLOYMENT COMMANDS ************
 initialize-eks-1: initialize-aws-1
 
-initialize-eks-2: initialize-aws-2 initialize-creds initialize-docker
+check-stack-eks:
+	aws cloudformation describe-stacks --stack-name csv-to-dynamo-db
+
+initialize-eks-2: initialize-aws-2
+
+initialize-docker-eks: initialize-creds initialize-docker
 
 run-eks: start-eks
 
@@ -64,153 +52,6 @@ deploy-auto-scaler:
 stop-eks: delete-eks
 
 cleanup-eks: cleanup-aws cleanup-creds cleanup-docker
-
-######## AMP - Grafana Starts ########
-
-initialize-DataSources-Grafana: initialize-AMP create-CloudWatch-XRay
-
-analyze-eks-grafana: deploy-prometheus-for-amp deploy-local-grafana upgrade-grafana-env
-
-forward-local-grafana-5001:
-	kubectl port-forward -n grafana $(GRAFANA_POD_NAME) 5001:3000
-
-get-grafana-login-pswd:
-	kubectl get secrets grafana-for-amp -n grafana -o jsonpath='{.data.admin-password}' | base64 --decode ; echo
-
-get-AMP-prometheusEndpoint:
-	aws amp describe-workspace --workspace-id $(AMP_WORKSPACE_ID) --query "workspace.prometheusEndpoint" --output text
-
-cleanup-DataSources-Grafana: cleanup-AMP-Grafana delete-CloudWatch-XRay
-
-stop-port-forwarding-5001: kill-grafana-for-amp-processes
-
-######## AMP - Grafana Ends ########
-
-# **************************************************************************** AWS Prometheus - Grafana commands STARTS ****************************************************************************
-
-initialize-AMP: create-AMP-Workspace create-AMP-yaml-json create-EKS-AMP-ServiceAccount-Role create-AMP-Policies approve-iam-oidc-provider
-
-# 0
-create-AMP-Workspace:
-	aws amp create-workspace --alias $(AMP_WORKSPACE_NAME) --region $(REGION)
-	echo $(SLEEP_10)
-
-create-AMP-yaml-json:
-	cd AMP-policies && bash create-AMP-yaml-json.sh $(CLUSTER_NAME) $(REGION) && cd ..
-
-create-AMP-Policies: create-AWSManagedPrometheusWriteAccessPolicy attach-EKS-AMP-ServiceAccount-Role
-
-# 1
-create-AWSManagedPrometheusWriteAccessPolicy:
-	aws iam create-policy --policy-name "AWSManagedPrometheusWriteAccessPolicy" --policy-document file://./AMP-policies/AWSManagedPrometheusWriteAccessPolicy.json
-
-# 2
-create-EKS-AMP-ServiceAccount-Role:
-	aws iam create-role --role-name "EKS-AMP-ServiceAccount-Role" --assume-role-policy-document file://./AMP-policies/TrustPolicy.json --description "SERVICE ACCOUNT IAM ROLE DESCRIPTION" --query "Role.Arn" --output text
-
-# 3
-attach-EKS-AMP-ServiceAccount-Role:
-	aws iam attach-role-policy --role-name "EKS-AMP-ServiceAccount-Role" --policy-arn "arn:aws:iam::$(ACCOUNT_ID):policy/AWSManagedPrometheusWriteAccessPolicy"
-
-# 4.1
-approve-iam-oidc-provider:
-	eksctl utils associate-iam-oidc-provider --cluster $(CLUSTER_NAME) --approve
-
-# 4.2
-deploy-prometheus-for-amp:
-	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-	kubectl create ns prometheus-namespace
-	helm install prometheus-for-amp prometheus-community/prometheus -n prometheus-namespace -f ./AMP-policies/amp_ingest_override_values.yaml --set serviceAccounts.server.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::$(ACCOUNT_ID):role/EKS-AMP-ServiceAccount-Role" --set server.remoteWrite[0].url="https://aps-workspaces.$(REGION).amazonaws.com/workspaces/$(AMP_WORKSPACE_ID)/api/v1/remote_write" --set server.remoteWrite[0].sigv4.region=$(REGION)
-	# helm upgrade prometheus-for-amp prometheus-community/prometheus -n prometheus-namespace -f ./AMP-policies/my_prometheus_values_yaml
-
-# 5
-deploy-local-grafana:
-	helm repo add grafana https://grafana.github.io/helm-charts
-	kubectl create ns grafana
-	helm install grafana-for-amp grafana/grafana -n grafana
-
-# 6
-upgrade-grafana-env:
-	helm upgrade --install grafana-for-amp grafana/grafana -n grafana -f ./AMP-policies/amp_query_override_values.yaml
-	echo $(SLEEP_10)
-
-# 7
-# get-kubernetes-secret-pswd:
-# 	kubectl get secrets grafana-for-amp -n grafana -o jsonpath='{.data.admin-password}' | base64 --decode ; echo
-
-# 8
-# forward-local-grafana-5001:
-# 	kubectl port-forward -n grafana $(GRAFANA_POD_NAME) 5001:3000
-
-create-CloudWatch-XRay: create-CloudWatch-Policy attach-CloudWatch-Policy create-XRay-Policy attach-XRay-Policy
-
-# Create AWS CloudWatch policy
-create-CloudWatch-Policy:
-	aws iam create-policy --policy-name "CloudWatchLogsMetricsPolicy" --policy-document file://./AMP-policies/CloudWatchLogsMetricsPolicy.json
-
-# Attach AWS CloudWatch policy to IAM user
-attach-CloudWatch-Policy:
-	aws iam attach-user-policy --user-name $(IAM_USER) --policy-arn "arn:aws:iam::$(ACCOUNT_ID):policy/CloudWatchLogsMetricsPolicy"
-
-# Create AWS XRay policy
-create-XRay-Policy:
-	aws iam create-policy --policy-name "XRayGrafanaPolicy" --policy-document file://./AMP-policies/XRayGrafanaPolicy.json
-
-# Attach AWS XRay policy to IAM user
-attach-XRay-Policy:
-	aws iam attach-user-policy --user-name $(IAM_USER) --policy-arn "arn:aws:iam::$(ACCOUNT_ID):policy/XRayGrafanaPolicy"
-
-# cleanups:
-cleanup-AMP-Grafana: clean-AMP-yaml-json delete-AMP-Workspace cleanup-AMP-Role cleanup-prom-grafana-namepaces
-
-clean-AMP-yaml-json:
-	cd AMP-policies && bash clean-AMP-yaml-json.sh && cd ..
-
-get-all-AMP-Workspaces:
-	aws amp list-workspaces --alias $(AMP_WORKSPACE_NAME)
-
-delete-AMP-Workspace:
-	aws amp delete-workspace --workspace-id $(AMP_WORKSPACE_ID)
-	echo $(SLEEP_10)
-
-cleanup-AMP-Role: detach-AWSManagedPrometheusWriteAccessPolicy delete-AWSManagedPrometheusWriteAccessPolicy delete-EKS-AMP-ServiceAccount-Role
-
-detach-AWSManagedPrometheusWriteAccessPolicy:
-	aws iam detach-role-policy --role-name EKS-AMP-ServiceAccount-Role --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/AWSManagedPrometheusWriteAccessPolicy
-
-delete-AWSManagedPrometheusWriteAccessPolicy:
-	aws iam delete-policy --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/AWSManagedPrometheusWriteAccessPolicy
-
-delete-CloudWatch-XRay: detach-CloudWatch-Policy delete-CloudWatch-Policy detach-XRay-Policy delete-XRay-Policy
-
-detach-CloudWatch-Policy:
-	aws iam detach-user-policy --user-name $(IAM_USER) --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/CloudWatchLogsMetricsPolicy
-
-delete-CloudWatch-Policy:
-	aws iam delete-policy --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/CloudWatchLogsMetricsPolicy
-
-detach-XRay-Policy:
-	aws iam detach-user-policy --user-name $(IAM_USER) --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/XRayGrafanaPolicy
-	
-delete-XRay-Policy:
-	aws iam delete-policy --policy-arn arn:aws:iam::$(ACCOUNT_ID):policy/XRayGrafanaPolicy
-
-delete-EKS-AMP-ServiceAccount-Role:
-	aws iam delete-role --role-name "EKS-AMP-ServiceAccount-Role"
-
-cleanup-prom-grafana-namepaces: delete-AWS_Prometheus-namespace delete-local-grafana-namespace
-
-delete-AWS_Prometheus-namespace:
-	kubectl delete namespaces prometheus-namespace
-
-delete-local-grafana-namespace:
-	kubectl delete namespaces grafana
-
-kill-grafana-for-amp-processes:
-	ps -ef | grep 'grafana-for-amp' | grep -v grep | awk '{print $2}' | xargs kill -9
-
-# **************************************************************************** AWS Prometheus - Grafana commands ENDS ****************************************************************************
-
 
 # ************ LOCAL (DOCKER) DEPLOYMENT COMMANDS ************
 
@@ -228,7 +69,10 @@ cleanup-local: cleanup-aws cleanup-creds cleanup-docker
 
 initialize-mk8s-1: initialize-aws-1
 
-initialize-mk8s-2: initialize-aws-2 initialize-creds initialize-docker
+check-stack-mk8s:
+	aws cloudformation describe-stacks --stack-name csv-to-dynamo-db
+
+initialize-mk8s-2: initialize-aws-2
 
 run-mk8s: start-mk8s configure-istio rollout-mk8s
 
@@ -243,7 +87,7 @@ cleanup-mk8s: cleanup-aws cleanup-creds cleanup-docker
 # ************ EKS COMMANDS ************
 
 start-eks:
-	eksctl create cluster --name $(CLUSTER_NAME) --version $(KVER) --region $(REGION) --nodegroup-name $(NGROUP) --node-type $(NTYPE) --nodes 2 --nodes-min 2 --nodes-max 2 --managed | tee $(LOG_DIR)/eks-start.log
+	eksctl create cluster --name $(CLUSTER_NAME) --version $(KVER) --region $(REGION) --nodegroup-name $(NGROUP) --node-type $(NTYPE) --nodes 3 --nodes-min 2 --nodes-max 3 --managed | tee $(LOG_DIR)/eks-start.log
 
 delete-eks:
 	eksctl delete cluster --name $(CLUSTER_NAME) --region $(REGION) | tee $(LOG_DIR)/eks-stop.log
@@ -317,22 +161,22 @@ port-forward:
 # ************ ADDON COMMANDS ************
 
 apply-grafana:
-	kubectl apply -f $(ISTIO_PATH)/grafana.yaml
+	kubectl apply -f cluster_add_ons/grafana.yaml
 
 apply-prometheus:
-	kubectl apply -f $(ISTIO_PATH)/prometheus.yaml
+	kubectl apply -f cluster_add_ons/prometheus.yaml
 
 apply-kiali:
-	kubectl apply -f $(ISTIO_PATH)/kiali.yaml
+	kubectl apply -f cluster_add_ons/kiali.yaml
 
 delete-grafana:
-	kubectl delete -f $(ISTIO_PATH)/grafana.yaml
+	kubectl delete -f cluster_add_ons/grafana.yaml
 
 delete-prometheus:
-	kubectl delete -f $(ISTIO_PATH)/prometheus.yaml
+	kubectl delete -f cluster_add_ons/prometheus.yaml
 
 delete-kiali:
-	kubectl delete -f $(ISTIO_PATH)/kiali.yaml
+	kubectl delete -f cluster_add_ons/kiali.yaml
 
 # ************ GET COMMANDS ************
 
@@ -448,6 +292,7 @@ create-stack:
 	--parameters ParameterKey=BucketName,ParameterValue=music-service-$(REGID) \
 		ParameterKey=DynamoDBTableName,ParameterValue=music \
 		ParameterKey=FileName,ParameterValue=music_100.csv | tee $(LOG_DIR)/stack.log
+
 upload-music:
 	aws s3 cp dynamo-db/music_100.csv s3://music-service-$(REGID)/music_100.csv | tee $(LOG_DIR)/s3.log
 
@@ -503,7 +348,7 @@ delete-table-cards:
 
 # ************ COMMANDS ************
 
-initialize-docker: build-docker
+initialize-docker: build-docker push-docker
 
 run-docker: run-auth run-playlist run-subscription run-mcli
 
