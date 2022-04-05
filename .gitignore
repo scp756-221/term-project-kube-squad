@@ -1,0 +1,10 @@
+.ec2.mak
+.idea
+.idea/
+k8s.mak
+*.log
+.env
+ghcr.io-token.txt
+gatling_kube_squad/.idea
+gatling_kube_squad/.idea/
+gatling_kube_squad/target/gatling/

@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subscription-svc
+#  labels:
+#    app: subscription
+spec:
+  selector:
+    matchLabels:
+      app: subscription-svc
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: subscription-svc
+    spec:
+      containers:
+        - name: subscription-container
+          image: ghcr.io/avickars/subscription:v1
+          imagePullPolicy: Always
+          ports:
+          - name: http
+            containerPort: 4000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: subscription-svc
+spec:
+  selector:
+    app: subscription-svc
+  ports:
+  - port: 80
+    protocol: "TCP"
+    targetPort: 4000
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: subscription-svc
+  namespace: default
+  annotations:
+    metric-config.object.istio-requests-total.prometheus/per-replica: "true"
+    metric-config.object.istio-requests-total.prometheus/query: sum(rate(istio_requests_total{destination_workload_namespace="default", destination_workload="auth-svc"}[1m]))/count(count(istio_agent_outgoing_latency{pod=~"subscription-svc.*"}) by (pod_name))
+spec:
+  maxReplicas: 10
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: subscription-svc
+  metrics:
+    - type: Object
+      object:
+        metricName: istio-requests-total
+        target:
+          apiVersion: v1
+          kind: Pod
+          name: subscription-svc
+        targetValue: 15

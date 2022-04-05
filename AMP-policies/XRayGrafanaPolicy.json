@@ -1,0 +1,19 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "xray:BatchGetTraces",
+          "xray:GetTraceSummaries",
+          "xray:GetTraceGraph",
+          "xray:GetGroups",
+          "xray:GetTimeSeriesServiceStatistics",
+          "xray:GetInsightSummaries",
+          "xray:GetInsight",
+          "ec2:DescribeRegions"
+        ],
+        "Resource": "*"
+      }
+    ]
+  }

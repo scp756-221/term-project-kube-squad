@@ -1,0 +1,3 @@
+local-storage.txt
+__pycache__/*
+../auth/__pycache__/*

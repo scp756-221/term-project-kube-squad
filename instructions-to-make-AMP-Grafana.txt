@@ -1,0 +1,77 @@
+# reference: the following instructions have been heavily derived from https://github.com/RekhuGopal/PythonHacks/blob/main/Kubernetes_AMP/Kubernetes_AMP_integration.json
+
+
+
+################################################## My Changes STARTS #######################################################
+CLUSTER_NAME=aws756
+REGION=us-west-2
+
+ACCOUNT_ID = $(shell aws sts get-caller-identity --query "Account" --output text)
+SLEEP_10 = $(shell sleep 10)
+
+0.
+## Get IODC Provider data.
+  aws eks describe-cluster --name $(CLUSTER_NAME) --query "cluster.identity.oidc.issuer" --output text
+
+
+1.Creating a new permission policy AWSManagedPrometheusWriteAccessPolicy
+  
+  aws iam create-policy --policy-name "AWSManagedPrometheusWriteAccessPolicy" --policy-document file://./AMP-policies/AWSManagedPrometheusWriteAccessPolicy.json
+
+
+2.Create an IAM role for Kubernetes service account
+  
+  aws iam create-role --role-name "EKS-AMP-ServiceAccount-Role" --assume-role-policy-document file://./AMP-policies/TrustPolicy.json --description "SERVICE ACCOUNT IAM ROLE DESCRIPTION" --query "Role.Arn" --output text
+
+
+
+3.Attach the trust and permission policies to the role
+  aws iam attach-role-policy --role-name "EKS-AMP-ServiceAccount-Role" --policy-arn "arn:aws:iam::455125577962:policy/AWSManagedPrometheusWriteAccessPolicy"
+
+  # the following will give account id, replace it with 455125577962
+  ACCOUNT_ID = $(shell aws sts get-caller-identity --query "Account" --output text)
+
+  aws iam attach-role-policy --role-name "EKS-AMP-ServiceAccount-Role" --policy-arn "arn:aws:iam::$(ACCOUNT_ID):policy/AWSManagedPrometheusWriteAccessPolicy"
+
+
+
+4.1. EKS cluster hosts an OIDC provider with a public discovery endpoint
+
+  eksctl utils associate-iam-oidc-provider --cluster $(CLUSTER_NAME) --approve
+
+4.2. Deploying Prometheus server
+  helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+  kubectl create ns prometheus-namespace
+
+  AMP_WORKSPACE_ID = $(shell aws amp list-workspaces --alias aws-prometheus-workspace --query "workspaces[].[workspaceId]" --output text)
+
+  helm install prometheus-for-amp prometheus-community/prometheus -n prometheus-namespace -f ./AMP-policies/amp_ingest_override_values.yaml --set serviceAccounts.server.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::$(ACCOUNT_ID):role/EKS-AMP-ServiceAccount-Role" --set server.remoteWrite[0].url="https://aps-workspaces.us-west-2.amazonaws.com/workspaces/$(AMP_WORKSPACE_ID)/api/v1/remote_write" --set server.remoteWrite[0].sigv4.region=$(REGION)
+
+
+
+5.Visualizing metrics using Grafana
+  helm repo add grafana https://grafana.github.io/helm-charts
+  kubectl create ns grafana
+  helm install grafana-for-amp grafana/grafana -n grafana
+
+
+
+6.Update your Grafana environment
+  helm upgrade --install grafana-for-amp grafana/grafana -n grafana -f ./AMP-policies/amp_query_override_values.yaml
+
+
+
+7.The password is obtained from the Kubernetes secret as follows:
+  kubectl get secrets grafana-for-amp -n grafana -o jsonpath='{.data.admin-password}' | base64 --decode ; echo
+
+
+
+8.Access Grafana by forwarding the port to http://localhost:5001
+  # kubectl get pods -n grafana
+
+  # kubectl port-forward -n grafana GRAFANA_POD_NAME 5001:3000
+
+  kubectl port-forward -n grafana grafana-for-amp-7869b99859-f5ls6 5001:3000
+  
+#############################################################################################################################################
+

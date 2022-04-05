@@ -1,0 +1,5 @@
+.env
+auth/__pycache__/*
+.idea/workspace.xml
+venv
+../.idea/workspace.xml
