@@ -1,5 +1,3 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-f059dc9a6f8d3a56e377f745f24479a46679e63a5d9fe6f495e02850cd0d8118.svg)](https://classroom.github.com/online_ide?assignment_repo_id=6952704&assignment_repo_type=AssignmentRepo)
-
 # Term Project README
 
 ## Prerequisites
@@ -27,16 +25,63 @@ https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/c
 
 3. Open "Makefile" and set "REGID" to your own GitHub username.
 
+4. Open k8s/auth.yaml, k8s/subscription.yaml, and k8s/playlist.yaml.  In each of the files, set the image to pull from your own github package repository (image: ghcr.io/avickars/auth:v1 -> image: ghcr.io/<your-github-userID>/auth:v1)
+
 ### DynamoDB Setup
 
 1. "make initialize-aws-1" // This command creates the cloud formation stack "csv-to-dynamo-db", and the S3 bucket "music-service-$(REGID)"
 2. "aws cloudformation list-stacks" // Check to ensure the "csv-to-dynamo-db" stack has finished being created
 3. "make initialize-aws-2" // This command creates the rest of the Dynamo DB tables required
 4. "make initialize-creds" // This command copies the ".env" file to every docker container directory in the repo
-5. "make initialize-docker" // This command builds all four containers
-6. "make push-docker" // This command pushes each container to your GitHub Packages registry
+5. "make initialize-docker" // This command builds all four containers, and pushes them to your GitHub package repository
+6. Navigate to your package repository on GitHub.com, and change the auth, playlist, subscription and mcli containers to public.
 
 ## Run/Stopping/Cleaning Up
+
+### EKS
+
+#### Run
+1. "start-eks" // Starts the cluster
+2. "configure-istio" // Installs Istio into the cluster, and deploys the gateway and virtual service
+3. "rollout-eks" // Deploys each service into the cluster, and creates tunnel into the cluster
+4. Open New Terminal
+6. "make get-pods" // Check to ensure all services are ready
+7. "make get-istio-svcs" // Note the external IP address of the "istio-ingressgateway" service, it is used send HTTP requests to the cluster
+
+#### Configuring Grafana, Prometheus and Kiali
+1. "make analyze-mk8s" // Deploys Grafana, Prometheus and Kiali into the cluster
+2. Open New Terminal
+3. "make port-forward service=kiali port=20001" // This command forwards Kiali to a local port.  To access Kiali, navigate to localhost:20001 in your web browser
+4. Open New Terminal
+5. "make port-forward service=grafana port=3000" // This command forwards Grafana to a local port.  To access Grafana, navigate to localhost:3000 in your web browser
+6. Open New Terminal
+7. "make port-forward service=kiali port=20001" // This command forwards Prometheus to a local port.  To access Prometheus, navigate to localhost:9090 in your web browser
+
+#### Configuring Auto-Scaling
+1. "make deploy-auto-scaler" // Configures the auto scaling according to number of requests per second.
+2. To edit the autoscaler metric for each service, navigate to ex: "auth.yaml", and adjust the metric used starting at line 45.
+
+#### Making Requests
+Run "make get-istio-svcs", use the EXTERNAL-IP for the "istio-ingressgateway" service to use as the EXTERNAL_IP variable in the sample http requests and mcli application below.
+
+Sample HTTP Requests:
+- curl -v http://<EXTERNAL_IP>/api/v1/auth/logout
+- curl -X POST http://<EXTERNAL_IP>/api/v1/auth/register -H 'Content-Type: application/json' -d '{"name":"user","email":"user@sfu.ca", "password":"test"}'
+- curl -X POST http://<EXTERNAL_IP>/api/v1/auth/login -H 'Content-Type: application/json' -d '{"user":"user@sfu.ca","password":"test"}'
+- curl -X POST http://<EXTERNAL_IP>/api/v1/subscribe/addcard  -H 'Content-Type: application/json' -d '{"card_no":"123456789","cvv":"123","exp_month":"03","exp_year":"2023"}'
+- curl -v http://<EXTERNAL_IP>/api/v1/music/getMusicList
+
+Using MCLI:
+
+"make run-mcli SERVER=<EXTERNAL_IP> PORT=80 DPL_TYPE=k8s"
+
+#### Stop
+1. "make stop-eks" // Terminates and deletes cluster
+
+#### Cleanup
+1. "stop-eks" // Removes the created network from Docker (the other containers are removed when stopped)
+2. "make cleanup-aws" // Deletes all AWS resources created during setup
+3. "make cleanup-creds" // Removes ".env" file every container directory
 
 ### As Containers Locally
 
@@ -59,11 +104,17 @@ https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/c
 2. "configure-istio" // Installs Istio into the cluster, and deploys the gateway and virtual service
 3. "rollout-mk8s" // Deploys each service into the cluster, and creates tunnel into the cluster.  NOTE: AutoScaling does not work on MK8S, ignore errors
 4. Enter super-user password into terminal as requested to allow tunnel access.
-5. Open New Terminal
-6. "make analyze-mk8s" // Deploys Grafana, Prometheus and Kiali into the cluster
-7. Grafana, Kiali and Prometheus ACCESS HERE
-8. Make HTTP requests to the cluster using localhost (See below for sample commands)
-9. "make get-pods" // Check to ensure all services are ready
+5. "make get-pods" // Check to ensure all services are ready
+6. Make HTTP requests to the cluster using localhost (See below for sample commands)
+
+#### Configuring Grafana, Prometheus and Kiali
+1. "make analyze-mk8s" // Deploys Grafana, Prometheus and Kiali into the cluster
+2. Open New Terminal
+3. "make port-forward service=kiali port=20001" // This command forwards Kiali to a local port.  To access Kiali, navigate to localhost:20001 in your web browser
+4. Open New Terminal
+5. "make port-forward service=grafana port=3000" // This command forwards Grafana to a local port.  To access Grafana, navigate to localhost:3000 in your web browser
+6. Open New Terminal
+7. "make port-forward service=kiali port=20001" // This command forwards Prometheus to a local port.  To access Prometheus, navigate to localhost:9090 in your web browser
 
 #### Making Requests
 Sample Requests:
@@ -78,37 +129,5 @@ Sample Requests:
 
 #### Cleanup
 1. "start-mk8s" // Removes the created network from Docker (the other containers are removed when stopped)
-2. "make cleanup-aws" // Deletes all AWS resources created during setup
-3. "make cleanup-creds" // Removes ".env" file every container directory
-
-### EKS
-
-#### Run
-1. "start-eks" // Starts the cluster
-2. "configure-istio" // Installs Istio into the cluster, and deploys the gateway and virtual service
-3. "rollout-eks" // Deploys each service into the cluster, and creates tunnel into the cluster
-4. Open New Terminal
-5. "make analyze-mk8s" // Deploys Grafana, Prometheus and Kiali into the cluster
-6. Grafana, Kiali and Prometheus ACCESS HERE
-7. "make get-pods" // Check to ensure all services are ready
-8. "make get-istio-svcs" // Note the external IP address here, it is used send HTTP requests to the cluster
-
-#### Making Requests
-Sample HTTP Requests:
-- curl -v http://<EXTERNAL_IP>/api/v1/auth/logout
-- curl -X POST http://<EXTERNAL_IP>/api/v1/auth/register -H 'Content-Type: application/json' -d '{"name":"user","email":"user@sfu.ca", "password":"test"}'
-- curl -X POST http://<EXTERNAL_IP>/api/v1/auth/login -H 'Content-Type: application/json' -d '{"user":"user@sfu.ca","password":"test"}'
-- curl -X POST http://<EXTERNAL_IP>/api/v1/subscribe/addcard  -H 'Content-Type: application/json' -d '{"card_no":"123456789","cvv":"123","exp_month":"03","exp_year":"2023"}'
-- curl -v http://<EXTERNAL_IP>/api/v1/music/getMusicList
-
-Using MCLI:
-
-"make run-mcli SERVER=<EXTERNAL_IP> PORT=80 DPL_TYPE=k8s"
-
-#### Stop
-1. "make stop-eks" // Terminates and deletes cluster
-
-#### Cleanup
-1. "stop-eks" // Removes the created network from Docker (the other containers are removed when stopped)
 2. "make cleanup-aws" // Deletes all AWS resources created during setup
 3. "make cleanup-creds" // Removes ".env" file every container directory
