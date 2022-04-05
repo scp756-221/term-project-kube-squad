@@ -43,7 +43,7 @@ https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/c
 #### Run
 1. "start-eks" // Starts the cluster
 2. "configure-istio" // Installs Istio into the cluster, and deploys the gateway and virtual service
-3. "rollout-eks" // Deploys each service into the cluster, and creates tunnel into the cluster
+3. "rollout-eks" // Deploys each service into the cluster
 4. Open New Terminal
 6. "make get-pods" // Check to ensure all services are ready
 7. "make get-istio-svcs" // Note the external IP address of the "istio-ingressgateway" service, it is used send HTTP requests to the cluster
