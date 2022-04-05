@@ -79,9 +79,8 @@ Using MCLI:
 1. "make stop-eks" // Terminates and deletes cluster
 
 #### Cleanup
-1. "stop-eks" // Removes the created network from Docker (the other containers are removed when stopped)
-2. "make cleanup-aws" // Deletes all AWS resources created during setup
-3. "make cleanup-creds" // Removes ".env" file every container directory
+1. "make cleanup-aws" // Deletes all AWS resources created during setup
+2. "make cleanup-creds" // Removes ".env" file every container directory
 
 ### As Containers Locally
 
