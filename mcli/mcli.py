@@ -35,34 +35,28 @@ def parse_args():
         help="Port number of music server"
         )
     argp.add_argument(
-        'port2',
-        type=int,
-        help="Port number of music server"
-        )
+        'dpl_type',
+        help="Deployment Type of music server"
+    )
     return argp.parse_args()
 
+def get_auth_url(name='localhost', port=80, deploymentType='k8s'):
+    if deploymentType == 'k8s':
+        return "http://{}:{}/api/v1/auth/".format(name, port)
+    else:
+        return "http://auth:3000/api/v1/auth/"
 
-def get_url(name, port):
-    return "http://{}:{}/api/v1/music/".format(name, port)
+def get_subscription_url(name='localhost', port=80, deploymentType='k8s'):
+    if deploymentType == 'k8s':
+        return "http://{}:{}/api/v1/subscribe/".format(name, port)
+    else:
+        return "http://subscription:4000/api/v1/subscribe/"
 
-def get_auth_url(name, port):
-    return "http://{}:{}/api/v1/auth/".format(name, port)
-
-def get_auth_url_hard(name, port):
-    # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
-    return "http://auth:3000/api/v1/auth/".format(name, port)
-    # return "http://127.0.0.1:3000/api/v1/auth/"
-
-def get_subscription_url_hard():
-    # return "http://0.0.0.0:3000/api/v1/auth/".format(name, port)
-    return "http://subscription:4000/api/v1/subscribe/"
-
-def get_music_url(name, port):
-    return "http://{}:{}/api/v1/music/".format(name, port)    
-
-def get_music_url_hard(name, port):
-    # return "http://0.0.0.0:5000/api/v1/music/"
-    return "http://playlist:6000/api/v1/music/"
+def get_music_url(name='localhost', port=80, deploymentType='k8s'):
+    if deploymentType == 'k8s':
+        return "http://{}:{}/api/v1/music/".format(name, port)
+    else:
+        return "http://playlist:6000/api/v1/music/"
 
 
 def parse_quoted_strings(arg):
@@ -100,6 +94,7 @@ class Auth(cmd.Cmd):
     def __init__(self, args):
         self.name = args.name
         self.port = args.port
+        self.dpl_type = args.dpl_type
         cmd.Cmd.__init__(self)
         self.prompt = 'mql: '
         self.intro = ""
@@ -111,7 +106,7 @@ class Auth(cmd.Cmd):
         email = utils.validate_email()
         passw, passw2 = utils.validate_pwd_and_c_pwd()
 
-        url = get_auth_url_hard(self.name, self.port)
+        url = get_auth_url(self.name, self.port, self.dpl_type)
 
         payload = {
             "name": name,
@@ -149,14 +144,13 @@ class Auth(cmd.Cmd):
         passw = utils.validate_pwd()
 
         # For test
-        url = get_auth_url_hard(self.name, self.port)
+        url = get_auth_url(self.name, self.port, self.dpl_type)
 
         payload = {
             'email': email,
             'password': passw,
         }
-        print(f"{url}login")
-        print(payload)
+
         r = requests.post(
             f"{url}login",
             json=payload,
@@ -186,7 +180,7 @@ class Mcli(cmd.Cmd):
     def __init__(self, args):
         self.name = args.name
         self.port = args.port
-        self.port2 = args.port2
+        self.dpl_type = args.dpl_type
         cmd.Cmd.__init__(self)
         self.prompt = 'mql: '
         self.intro = """
@@ -198,7 +192,7 @@ class Mcli(cmd.Cmd):
     def show_music_list(self):
         """
         """
-        url = get_music_url_hard(self.name, self.port2)
+        url = get_music_url(self.name, self.port, self.dpl_type)
 
         url = f"{url}getMusicList"
         
@@ -239,7 +233,7 @@ class Mcli(cmd.Cmd):
             playlist_name = utils.validate_playlist_name(type='your')
             print("Select songs from below or press Q to end")
             song_list = self.show_music_list()
-            url = get_music_url_hard(self.name,self.port2)
+            url = get_music_url(self.name,self.port, self.dpl_type)
             orderNum = 0
             done_message = utils.add_song_by_song_id(playlist_name, song_list, url, orderNum)
 
@@ -248,7 +242,7 @@ class Mcli(cmd.Cmd):
             viewPlaylist = utils.ask_to_view_existing_playlist()
 
             if viewPlaylist:
-                url = get_music_url_hard(self.name, self.port2)
+                url = get_music_url(self.name, self.port, self.dpl_type)
 
                 res, playlistNames = utils.view_playlist_names(url)
 
@@ -297,7 +291,7 @@ class Mcli(cmd.Cmd):
 
         name, email = utils.decode_jwt(token)
 
-        url = get_subscription_url_hard()
+        url = get_subscription_url(self.name, self.port, self.dpl_type)
 
         payload = {
             "email": email,
@@ -336,7 +330,7 @@ class Mcli(cmd.Cmd):
 
         name, email = utils.decode_jwt(token)
 
-        url = get_subscription_url_hard()
+        url = get_subscription_url(self.name, self.port, self.dpl_type)
         payload = {
             "card_no": card_no,
             "cvv": cvv,
@@ -360,31 +354,31 @@ class Mcli(cmd.Cmd):
         """
         CLI option to view lyrics.
         """
-        view_song_info(get_music_url_hard(self.name,self.port2),'lyrics')
+        view_song_info(get_music_url(self.name, self.port, self.dpl_type),'lyrics')
 
     def do_find_artist(self, arg):
         """
         CLI option to view artist name
         """
-        view_song_info(get_music_url_hard(self.name,self.port2),'artist')
+        view_song_info(get_music_url(self.name,self.port, self.dpl_type),'artist')
 
     def do_view_song_genre(self, arg):
         """
         CLI option to view song genre
         """
-        view_song_info(get_music_url_hard(self.name,self.port2),'genre')
+        view_song_info(get_music_url(self.name,self.port, self.dpl_type),'genre')
 
     def do_get_song_release_date(self, arg):
         """
         CLI option to get song release date
         """
-        view_song_info(get_music_url_hard(self.name,self.port2),'release-date')
+        view_song_info(get_music_url(self.name,self.port, self.dpl_type),'release-date')
 
     def do_find_song_topic(self, arg):
         """
         CLI option to find song topic
         """
-        view_song_info(get_music_url_hard(self.name, self.port2),'topic')    
+        view_song_info(get_music_url(self.name, self.port, self.dpl_type),'topic')
 
     def do_logout(self, arg):
         """

@@ -11,4 +11,4 @@ COPY utils.py ./
 
 COPY .env ./
 
-CMD ["python", "mcli.py", "0.0.0.0", "3000", "6000"]
+CMD ["python", "mcli.py", "localhost", "80"]

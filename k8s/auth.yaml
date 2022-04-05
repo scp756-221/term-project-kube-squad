@@ -1,22 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-deploy
+  name: auth-svc
   labels:
-    type: restapi
+    app: auth
 spec:
   selector:
     matchLabels:
-      app: auth
-  replicas: 1
+      app: auth-svc
+  replicas: 3
   template:
     metadata:
-      name: auth-tmpl
       labels:
-        app: auth
+        app: auth-svc
     spec:
       containers:
-        - name: auth
+        - name: auth-container
           image: ghcr.io/avickars/auth:v1
           imagePullPolicy: Always
           ports:
@@ -28,11 +27,34 @@ kind: Service
 metadata:
   name: auth-svc
 spec:
-  type: LoadBalancer
   selector:
-    app: auth
+    app: auth-svc
   ports:
-  - name: http
+  - port: 80
     protocol: "TCP"
-    port: 3000
-    targetPort: http
+    targetPort: 3000
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-svc
+  namespace: default
+  annotations:
+    metric-config.object.istio-requests-total.prometheus/per-replica: "true"
+    metric-config.object.istio-requests-total.prometheus/query: sum(rate(istio_requests_total{destination_workload_namespace="default", destination_workload="auth-svc"}[1m]))/count(count(istio_agent_outgoing_latency{pod=~"auth-svc.*"}) by (pod_name))
+spec:
+  maxReplicas: 8
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-svc
+  metrics:
+    - type: Object
+      object:
+        metricName: istio-requests-total
+        target:
+          apiVersion: v1
+          kind: Pod
+          name: auth-svc
+        targetValue: 15
