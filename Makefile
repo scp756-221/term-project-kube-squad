@@ -153,7 +153,24 @@ apply-vs-playlist-fault:
 apply-vs-subscription-fault:
 	kubectl apply -f k8s/subscription_vs_fault.yaml
 
-# ************ ADDON COMMANDS ************
+# ------------------
+
+delete-vs-auth-fault:
+	kubectl delete -f k8s/auth_vs_fault.yaml
+
+delete-vs-playlist-fault:
+	kubectl delete -f k8s/playlist_vs_fault.yaml
+
+delete-vs-subscription-fault:
+	kubectl delete -f k8s/subscription_vs_fault.yaml
+
+# ------------------
+
+apply-cb-auth:
+	kubectl apply -f k8s/auth_cb.yaml
+
+delete-cb-auth:
+	kubectl delete -f k8s/auth_cb.yaml
 
 port-forward:
 	kubectl port-forward svc/$(service) -n istio-system $(port)
@@ -220,10 +237,10 @@ update-auth:
 	kubectl apply -f k8s/auth.yaml
 
 rollout-subscription:
-	kubectl create -f k8s/subscription.yaml
+	kubectl apply -f k8s/subscription.yaml
 
 rollout-playlist:
-	kubectl create -f k8s/playlist.yaml
+	kubectl apply -f k8s/playlist.yaml
 
 # ************ DELETE COMMANDS ************
 
