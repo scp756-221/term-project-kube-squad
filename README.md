@@ -25,7 +25,7 @@ https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/c
 
 3. Open "Makefile" and set "REGID" to your own GitHub username.
 
-4. Open k8s/auth.yaml, k8s/subscription.yaml, and k8s/playlist.yaml.  In each of the files, set the image to pull from your own github package repository (image: ghcr.io/avickars/auth:v1 -> image: ghcr.io/<your-github-userID>/auth:v1)
+4. Open k8s/auth.yaml, k8s/subscription.yaml, and k8s/playlist.yaml.  In each of the files, set the image to pull from your own github package repository (image: ghcr.io/avickars/auth:v1 -> image: ghcr.io/your-github-userID/auth:v1)
 
 ### DynamoDB Setup
 
