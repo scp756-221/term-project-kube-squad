@@ -59,7 +59,7 @@ https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/c
 
 #### Configuring Auto-Scaling
 1. "make deploy-auto-scaler" // Configures the auto scaling according to number of requests per second.
-2. To edit the autoscaler metric for each service, navigate to ex: "auth.yaml", and adjust the metric used starting at line 45.
+2. To edit the autoscaler metric for each service, navigate to "k8s/auth.yaml", "k8s/playlist.yaml" or "k8s/subscription.yaml", and adjust the metric used starting at line 45.
 
 #### Making Requests
 Run "make get-istio-svcs", use the EXTERNAL-IP for the "istio-ingressgateway" service to use as the EXTERNAL_IP variable in the sample http requests and mcli application below.
