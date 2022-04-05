@@ -6,6 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="109f5b81-9108-4b66-a01f-9c097faa86a0" name="Changes" comment="added User table to Makefile #63">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gatling_kube_squad/target/test-classes/simulations/AuthSimulations.class" beforeDir="false" afterPath="$PROJECT_DIR$/gatling_kube_squad/target/test-classes/simulations/AuthSimulations.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gatling_kube_squad/target/test-classes/simulations/PremiumMusicInfoSimulations.class" beforeDir="false" afterPath="$PROJECT_DIR$/gatling_kube_squad/target/test-classes/simulations/PremiumMusicInfoSimulations.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/k8s/auth.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s/auth.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/k8s/playlist.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s/playlist.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/k8s/subscription.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s/subscription.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: auth-svc
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       labels:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: auth-container
-          image: ghcr.io/avickars/auth:v1
+          image: ghcr.io/asa-404/auth:v1
           imagePullPolicy: Always
           ports:
           - name: http

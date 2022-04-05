@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: playlist-svc
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       labels:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: playlist-container
-          image: ghcr.io/avickars/playlist:v1
+          image: ghcr.io/asa-404/playlist:v1
           imagePullPolicy: Always
           ports:
           - name: http
