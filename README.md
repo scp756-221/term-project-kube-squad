@@ -55,7 +55,7 @@ https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/c
 4. Open New Terminal
 5. "make port-forward service=grafana port=3000" // This command forwards Grafana to a local port.  To access Grafana, navigate to localhost:3000 in your web browser
 6. Open New Terminal
-7. "make port-forward service=kiali port=20001" // This command forwards Prometheus to a local port.  To access Prometheus, navigate to localhost:9090 in your web browser
+7. "make port-forward service=prometheus port=9090" // This command forwards Prometheus to a local port.  To access Prometheus, navigate to localhost:9090 in your web browser
 
 #### Configuring Auto-Scaling
 1. "make deploy-auto-scaler" // Configures the auto scaling according to number of requests per second.
@@ -114,7 +114,7 @@ Using MCLI:
 4. Open New Terminal
 5. "make port-forward service=grafana port=3000" // This command forwards Grafana to a local port.  To access Grafana, navigate to localhost:3000 in your web browser
 6. Open New Terminal
-7. "make port-forward service=kiali port=20001" // This command forwards Prometheus to a local port.  To access Prometheus, navigate to localhost:9090 in your web browser
+7. "make port-forward service=prometheus port=9090" // This command forwards Prometheus to a local port.  To access Prometheus, navigate to localhost:9090 in your web browser
 
 #### Making Requests
 Sample Requests:
