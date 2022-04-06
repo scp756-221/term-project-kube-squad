@@ -21,9 +21,9 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
-  name: httpbin-auth
+  name: auth-svc
 spec:
-  host: httpbin-auth
+  host: auth-svc
   trafficPolicy:
     connectionPool:
       tcp:
