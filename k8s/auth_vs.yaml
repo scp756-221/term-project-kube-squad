@@ -17,3 +17,17 @@ spec:
             port:
               number: 80
             host: auth-svc.default.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: httpbin-auth
+spec:
+  host: httpbin-auth
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 1
+      http:
+        http1MaxPendingRequests: 1
+        maxRequestsPerConnection: 1
