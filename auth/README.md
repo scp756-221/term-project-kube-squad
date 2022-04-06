@@ -4,12 +4,7 @@ The user service maintains a list of users and passwords.  In a more complete ve
 
 ## Installation
 
-```bash
-pip install virtualenv (if you don't already have virtualenv installed)
-virtualenv venv to create your new environment (called 'venv' here)
-source venv/bin/activate to enter the virtual environment
-pip install -r requirements.txt
-```
+See Repository README for deployment instructions
 
 ## APIs
 
@@ -24,7 +19,7 @@ http://127.0.0.1:5000/api/v1/auth/cuser
 
 ```bash
 Method type: POST
-http://127.0.0.1:5000/api/v1/auth/login
+http://<CLUSTER_INGRESS_IP_ADDRESS>/api/v1/auth/login
 
 Body: 
 
@@ -47,7 +42,7 @@ Success Response:
 
 ```bash
 Method type: POST
-http://127.0.0.1:5000/api/v1/auth/register
+http://<CLUSTER_INGRESS_IP_ADDRESS>/api/v1/auth/register
 
 Body: 
 
