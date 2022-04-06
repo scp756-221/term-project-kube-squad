@@ -61,6 +61,16 @@ https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/c
 1. "make deploy-auto-scaler" // Configures the auto scaling according to number of requests per second.
 2. To edit the autoscaler metric for each service, navigate to "k8s/auth.yaml", "k8s/playlist.yaml" or "k8s/subscription.yaml", and adjust the metric used starting at line 45.
 
+#### Configuring Circuit-Breaker
+1. Adjust the circuit breakers as desired, see k8s/auth_cb.yaml, k8s/subscription_cb.yaml, and k8s/playlist_cb.yaml 
+2. Run "make apply-cb-auth", "make apply-cb-subscription" and "make apply-cb-playlist" accordingly
+3. To remove circuit breakers, run "make delete-cb-auth", "make delete-cb-subscription" and "make delete-cb-playlist" accordingly
+
+#### Configuring Faults
+1. Adjust the faults as desired, see k8s/auth_vs_fault.yaml, k8s/subscription_vs_fault.yaml, and k8s/playlist_vs_fault.yaml 
+2. Run "make apply-vs-auth-fault", "make apply-vs-subscription-fault", "make apply-vs-playlist-fault" accordingly // these commands define the virtual services of each service with faults
+3. To remove faults, run "make apply-vs-auth", "make apply-vs-subscription", "make apply-vs-playlist" accordingly // these commands define the virtual services of each service without faults
+
 #### Making Requests
 Run "make get-istio-svcs", use the EXTERNAL-IP for the "istio-ingressgateway" service to use as the EXTERNAL_IP variable in the sample http requests and mcli application below.
 
@@ -115,6 +125,19 @@ Using MCLI:
 6. Open New Terminal
 7. "make port-forward service=prometheus port=9090" // This command forwards Prometheus to a local port.  To access Prometheus, navigate to localhost:9090 in your web browser
 
+#### Configuring Circuit-Breaker
+1. Adjust the circuit breakers as desired, see k8s/auth_cb.yaml, k8s/subscription_cb.yaml, and k8s/playlist_cb.yaml 
+2. Run "make apply-cb-auth", "make apply-cb-subscription" and "make apply-cb-playlist" accordingly
+3. To remove circuit breakers, run "make delete-cb-auth", "make delete-cb-subscription" and "make delete-cb-playlist" accordingly
+
+#### Configuring Faults
+1. Adjust the faults as desired, see k8s/auth_vs_fault.yaml, k8s/subscription_vs_fault.yaml, and k8s/playlist_vs_fault.yaml 
+2. Run "make apply-vs-auth-fault", "make apply-vs-subscription-fault", "make apply-vs-playlist-fault" accordingly // these commands define the virtual services of each service with faults
+3. To remove faults, run "make apply-vs-auth", "make apply-vs-subscription", "make apply-vs-playlist" accordingly // these commands define the virtual services of each service without faults
+
+#### Configuring Auto-Scaling
+Note: Auto-Scaling does not work in Minikube
+
 #### Making Requests
 Sample Requests:
 - curl -v http://localhost/api/v1/auth/logout
@@ -122,6 +145,10 @@ Sample Requests:
 - curl -X POST http://localhost/api/v1/auth/login -H 'Content-Type: application/json' -d '{"user":"user@sfu.ca","password":"test"}'
 - curl -X POST http://localhost/api/v1/subscribe/addcard  -H 'Content-Type: application/json' -d '{"card_no":"123456789","cvv":"123","exp_month":"03","exp_year":"2023"}'
 - curl -v http://localhost/api/v1/music/getMusicList
+
+Using MCLI:
+
+Note: the MCLI does not work with services deployed to Minikube
 
 #### Stop
 1. "make stop-mk8s" // Terminates and deletes cluster
