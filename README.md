@@ -15,8 +15,7 @@ Execute every command and action to configure the service.
 
 ### Initial Setup
 
-1. Copy/paste ".env-tpl" as ".env".  Add aws access key id, aws secret access key and preferred 
-aws region to ".env".  (If not already created, follow these instructions: 
+1. Copy/paste ".env-tpl" as ".env".  Add aws access key id, and aws secret access key to ".env".  (If not already created, follow these instructions: 
 https://aws.amazon.com/premiumsupport/knowledge-center/create-access-key/)
 
 2. Copy/paste "ghcr.io-token-tpl.txt" as "ghcr.io-token.txt".  Add GitHub personal access token to ghcr.io-token.txt. (If 
