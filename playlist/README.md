@@ -4,67 +4,160 @@ The user service maintains a list of users and passwords.  In a more complete ve
 
 ## Installation
 
-```bash
-pip install virtualenv (if you don't already have virtualenv installed)
-virtualenv venv to create your new environment (called 'venv' here)
-source venv/bin/activate to enter the virtual environment
-pip install -r requirements.txt
-```
+See Repository README for deployment instructions
 
 ## APIs
 
-1. Create table user
+1. Get Songs
 
 ```bash
 Method type: GET
-http://127.0.0.1:5000/api/v1/auth/cuser
+http://<CLUSTER_INGRESS_IP_ADDRESS>/api/v1/music/getMusicList
+
+Body:
+{
+  "Count": 100,
+  "Items": [{
+      "artist_name": {
+        "S": "t. m. soundararajan"
+      },
+      "genre": {
+        "S": "pop"
+      },
+      "lyrics": {
+        "S": "watch world surround inside phone booth begin astound try couth say sunday cause rybody tellin truth monday yeah monday cause rybody drinkin vermouth lend hand kiss stand give away free acid joke smoke barely drive dusk headlights headphones tomorrow plan shop spree love hard like billboard grin toast life beauty head begin spin press cheek rainwashed streets weep reincarnation come december thirtyfirst worst time year think people like share beer have january explanations appear"
+      },
+      "release_date": {
+        "S": "1953"
+      },
+      "topic": {
+        "S": "world/life"
+      },
+      "track_name": {
+        "S": "ethanai periya"
+      },
+      "uuid": {
+        "S": "99"
+      }},...,
+      {
+      "artist_name": {
+        "S": "a. m. rajah"
+      },
+      "genre": {
+        "S": "pop"
+      },
+      "lyrics": {
+        "S": "deal pharmaceuticals sell pills yesterday sister call tell kill respectable doctor hill shoot heart feel thing poor deal pharmaceuticals sell expensive drug give money hell think medicine prescription fill come goodbye sorry die come finish pay come finish pay come finish pay come finish pay deal pharmaceuticals sell pills yesterday sister call tell kill medicine prescription fill come goodbye sorry die come finish pay come finish pay come finish pay come finish pay"
+      },
+      "release_date": {
+        "S": "1954"
+      },
+      "topic": {
+        "S": "obscene"
+      },
+      "track_name": {
+        "S": "gopiparivrito"
+      },
+      "uuid": {
+        "S": "138"
+      }}]
+  "ScannedCount": 100
+}
 ```
 
-2. user login
+2. Get Playlists
 
 ```bash
 Method type: POST
-http://127.0.0.1:5000/api/v1/auth/login
+http://<CLUSTER_INGRESS_IP_ADDRESS>/api/v1/music/view_playlist_names
 
 Body: 
 
 {
-    "password": "123123123",
-    "name": "aa",
+    "username": "aa",
     "email": "bbb@g.com"
 }
 
 Success Response:
 
 {
-    "message": "User logged in successfully!",
-    "status": true,
-    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWEiLCJlbWFpbCI6ImJiYkBnLmNvbSJ9.vBJ3i_rMvjGq_nENVJyQQWdkQgfQQwiPMCmAxoCQOkk"
+    'status': True,
+    'message': 'Retrieved Playlists',
+    'item':list(playListNames)
 }
 ```
 
-2. user register
+3. Delete Songs From Paylist
 
 ```bash
 Method type: POST
-http://127.0.0.1:5000/api/v1/auth/register
+http://<CLUSTER_INGRESS_IP_ADDRESS>/api/v1/music/delete_song_from_playlist
 
 Body: 
 
 {
-    "name": "aa",
-    "email": "bbb@g.com",
-    "password": "123123123"
+    "songsToDelete": [1,2,3,4,...,10],
 }
 
 Success Response: 
 
 {
-    "message": "User registered successfully",
-    "status": true
+    'status': True, 'message': 'Deleted'
 }
 ```
-Password will be encrypted before getting added to the table.
+
+4. View Playlist
+
+```bash
+Method type: POST
+http://<CLUSTER_INGRESS_IP_ADDRESS>/api/v1/music/view_playlist
+
+Body: 
+
+{
+    "username": "aa",
+    "email": "bbb@g.com",
+    "playlistName": "test"
+}
+
+Success Response: 
+
+{
+    'status': True,
+    'message': 'Retrieved Playlists',
+    'item':playList
+}
+```
+
+5. Add To Playlist
+
+```bash
+Method type: POST
+http://<CLUSTER_INGRESS_IP_ADDRESS>/api/v1/music/addToPlaylist
+
+Body: 
+
+{
+    "uuid": "124",
+    "artist_name": "artist_name",
+    "track_name": "track_name",
+    "genre": "genre",
+    "lyrics": "lyrics",
+    "topic": "topic",
+    "username": "aa",
+    "email": "bbb@g.com",
+    "playlistName": "test",
+    "orderNum": 1
+}
+
+Success Response: 
+
+{
+    'status': True,
+    'message': 'Music track added to playlist successfully',
+}
+
+```
 
 ### Premium song info APIs
 
@@ -76,7 +169,7 @@ Password will be encrypted before getting added to the table.
 
 ```bash
 Method type: GET
-http://127.0.0.1:5000/api/v1/music/<music_id>/<detail_type>
+http://<CLUSTER_INGRESS_IP_ADDRESS>/api/v1/music/<music_id>/<detail_type>
 
 Url parameters:
 <music_id> - must be a positive integer

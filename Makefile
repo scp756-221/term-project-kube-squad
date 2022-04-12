@@ -1,6 +1,5 @@
 SHELL := /bin/bash
-#REGID=avickars
-REGID=test20
+REGID=avickars
 
 CREG=ghcr.io
 AWS_REGION=us-west-2
@@ -102,6 +101,10 @@ apply-vs-fault: apply-vs-auth-fault apply-vs-playlist-fault apply-vs-subscriptio
 
 delete-vs: delete-vs-auth delete-vs-playlist delete-vs-subscription
 
+create-cb: apply-cb-auth apply-cb-playlist apply-cb-subscription
+
+delete-cb: delete-cb-auth delete-cb-playlist delete-cb-subscription
+
 # ------------------
 
 label-namespace-istio:
@@ -144,6 +147,28 @@ delete-vs-subscription:
 
 # ------------------
 
+apply-cb-auth:
+	kubectl apply -f k8s/auth_cb.yaml
+
+apply-cb-playlist:
+	kubectl apply -f k8s/playlist_cb.yaml
+
+apply-cb-subscription:
+	kubectl apply -f k8s/subscription_cb.yaml
+
+# ------------------
+
+delete-cb-auth:
+	kubectl delete -f k8s/auth_cb.yaml
+
+delete-cb-playlist:
+	kubectl delete -f k8s/playlist_cb.yaml
+
+delete-cb-subscription:
+	kubectl delete -f k8s/subscription_cb.yaml
+
+# ------------------
+
 apply-vs-auth-fault:
 	kubectl apply -f k8s/auth_vs_fault.yaml
 
@@ -165,12 +190,6 @@ delete-vs-subscription-fault:
 	kubectl delete -f k8s/subscription_vs_fault.yaml
 
 # ------------------
-
-apply-cb-auth:
-	kubectl apply -f k8s/auth_cb.yaml
-
-delete-cb-auth:
-	kubectl delete -f k8s/auth_cb.yaml
 
 port-forward:
 	kubectl port-forward svc/$(service) -n istio-system $(port)

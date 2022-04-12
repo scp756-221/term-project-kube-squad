@@ -4,67 +4,59 @@ The user service maintains a list of users and passwords.  In a more complete ve
 
 ## Installation
 
-```bash
-pip install virtualenv (if you don't already have virtualenv installed)
-virtualenv venv to create your new environment (called 'venv' here)
-source venv/bin/activate to enter the virtual environment
-pip install -r requirements.txt
-```
+See Repository README for deployment instructions
 
 ## APIs
 
-1. Create table user
-
-```bash
-Method type: GET
-http://127.0.0.1:5000/api/v1/auth/cuser
-```
-
-2. user login
+1. Add Credit Card
 
 ```bash
 Method type: POST
-http://127.0.0.1:5000/api/v1/auth/login
+http://<CLUSTER_INGRESS_IP_ADDRESS>/api/v1/subscribe/addcard
 
 Body: 
 
 {
-    "password": "123123123",
-    "name": "aa",
-    "email": "bbb@g.com"
+    "card_no": "123123123",
+    "cvv": "132",
+    "exp_month": "10",
+    "exp_year": "2022"
 }
 
 Success Response:
 
 {
-    "message": "User logged in successfully!",
-    "status": true,
-    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiYWEiLCJlbWFpbCI6ImJiYkBnLmNvbSJ9.vBJ3i_rMvjGq_nENVJyQQWdkQgfQQwiPMCmAxoCQOkk"
+    'status': True,
+    'message': 'Card added successfully',
 }
 ```
 
-2. user register
+2. Add Subscription
 
 ```bash
 Method type: POST
-http://127.0.0.1:5000/api/v1/auth/register
+http://<CLUSTER_INGRESS_IP_ADDRESS>/api/v1/subscribe/subcribe
 
 Body: 
 
 {
-    "name": "aa",
-    "email": "bbb@g.com",
-    "password": "123123123"
+    "email": "test@sfu.ca",
+    "subscription": "True",
+    "subscription_type": "1",
+    "card_no": "123123123",
+    "cvv": "132",
+    "exp_month": "10",
+    "exp_year": "2022"
 }
 
-Success Response: 
+Success Response:
 
 {
-    "message": "User registered successfully",
-    "status": true
+    'status': True,
+    'message': 'Payment was succesfull and subscription updated successfully',
 }
 ```
-Password will be encrypted before getting added to the table.
+
 
 
 ### References

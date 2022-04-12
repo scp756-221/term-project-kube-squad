@@ -11,35 +11,8 @@ curl -v http://localhost/api/v1/music/getMusicList
 
 curl -X POST http://localhost/api/v1/subscribe/addcard  -H 'Content-Type: application/json' -d '{"card_no":"123456789","cvv":"123","exp_month":"03","exp_year":"2023"}'
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 while true; do curl -X POST http://localhost:80/api/v1/auth/register -H 'Content-Type: application/json' -d '{"name":"aidan","email":"avickars@sfu.ca", "password":"apple"}'; done
 
 while true; do curl -X POST http://localhost/api/v1/subscribe/addcard  -H 'Content-Type: application/json' -d '{"card_no":"123456789","cvv":"123","exp_month":"03","exp_year":"2023"}'; done
 
 while true; do curl -X POST http://localhost/api/v1/music/view_playlist_names -H 'Content-Type: application/json' -d '{"username":"aidan","email":"avickars@sfu.ca"}'; done
-
-
